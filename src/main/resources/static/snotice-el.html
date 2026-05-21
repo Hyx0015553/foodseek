@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/crud-enhance.js"></script>
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/index.css" />
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/public.css" />
+    <script src="./__PUBLIC__/elementui-vue/vue.global.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/icons-vue.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/element-plus.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/zh-cn.js"></script>
+</head>
+<body>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm">
+    <input style="display: none;" id="selectimginput" onchange="showPicImg(this.files);" name="file" type="file"/>
+</form>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm2">
+    <input style="display: none;" id="selectimginput2" onchange="showPicImg2(this.files);" name="file" type="file"/>
+</form>
+<div id="app">
+    <el-container>
+        <el-header style="height: auto;">
+            <div class="searchctn">
+                <el-form :model="sobj" :inline="true" label-width="auto">
+                    <el-form-item label="????">
+                        <el-input v-model="sobj.title" placeholder="??????" clearable style="width: 200px"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="refreshData">????</el-button>
+                        <el-button type="success" @click="toReset">????</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+        </el-header>
+        <el-main>
+            <div class="datagridctn">
+                <div class="tablectn">
+                    <div class="tabletoolbarctn">
+                        <el-button v-if="luser.roletype=='1'" type="danger" @click="showEdit(null)">????</el-button>
+                        <el-button v-if="luser.roletype=='1'" type="warning" :disabled="!selectedKeys.length" @click="batchDel">???????</el-button>
+                        <el-button type="primary" :disabled="!dataSource.length" @click="exportCurrent">????CSV</el-button>
+                    </div>
+
+                    <el-table stripe v-loading="loading" :data="dataSource" current-row-key="id" :highlight-current-row="true" :show-overflow-tooltip="true" style="width: 100%"
+                              @selection-change="handleSelectionChange"
+                              @sort-change="handleSortChange">
+                        <el-table-column v-if="luser.roletype=='1'" type="selection" width="48" align="center"></el-table-column>
+                        <el-table-column prop="id" sortable label="???" width="100px" align="center"></el-table-column>
+                        <el-table-column prop="title" sortable label="????" min-width="160" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="ndate" sortable label="????" width="170" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column fixed="right" label="????" width="200" align="center">
+                            <template #default="scope">
+                                <el-button link type="primary" size="small" @click="showEdit(scope.row)">??</el-button>
+                                <el-button v-if="luser.roletype=='1'" link type="danger" size="small" @click="del(scope.row.id)">???</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <div class="paginationctn">
+                    <el-pagination v-model:current-page="page.current" v-model:page-size="page.limit" :page-sizes="[100, 200, 300, 400]" layout="total, sizes, prev, pager, next, jumper" :total="page.total" @size-change="refreshData" @current-change="refreshData"></el-pagination>
+                </div>
+            </div>
+            <div class="formdialog" v-show="showe">
+                <div class="formdialogtitle">????<span class="formdialogtitlegb" @click="showe=false"></span></div>
+                <el-form ref="fobjform1" :model="fobj" label-width="auto">
+                    <el-form-item label="????" prop="title" :rules="formRules">
+                        <el-input type="text" v-model="fobj.title"></el-input>
+                    </el-form-item>
+                    <div style="text-align: center;margin-bottom: 20px;">
+                        <div style="width: 150px;margin-left: 35%;">
+                            <div style="text-align: center;">
+                                <div style="text-align: center;" id="imgctn"></div>
+                                <a href="#" onclick="getFileInput(this);">??????</a>
+                            </div>
+                        </div>
+                    </div>
+                    <el-form-item label="???">
+                        <div id="editor" style="width: 480px;height: 400px;">
+
+                        </div>
+                    </el-form-item>
+                    <el-form-item style="text-align: center;margin-top: 50px;">
+                        <el-button v-if="luser.roletype=='1'" type="success" @click="submit1">??</el-button>
+                        <el-button type="danger" @click="cancel">???</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+
+        </el-main>
+        <el-footer></el-footer>
+    </el-container>
+</div>
+
+</body>
+<script>
+    const App = {
+        data() {
+            return {
+                formRules:[{required: true, message: '????????...', trigger: 'blur'}],
+                fileurl:fileurl,
+                uploadUrl:uploadUrl,
+                luser:{},
+                tbname:'snotice',
+                showe:false,
+                sobj:{},
+                fobj:{},
+                page:{ current: 1, limit: 10, total: 100 },
+                selectedKeys:[],
+                loading:false,
+
+                dataSource:[]
+            };
+        },
+        mounted() {
+            this.luser = userinfo
+            this.refreshData()
+        },
+        methods: {
+            handleSelectionChange(rows) {
+                this.selectedKeys = (rows || []).map(function (r) { return r.id })
+            },
+            handleSortChange(obj) {
+                if (!obj || !obj.prop) {
+                    delete this.sobj.sort
+                    delete this.sobj.order
+                } else {
+                    this.sobj.sort = obj.prop
+                    this.sobj.order = obj.order === 'ascending' ? 'asc' : (obj.order === 'descending' ? 'desc' : null)
+                }
+                this.refreshData()
+            },
+            batchDel() {
+                if (String(this.luser.roletype) !== '1') return
+                if (!this.selectedKeys || !this.selectedKeys.length) {
+                    ElementPlus.ElMessage.warning('??????????????')
+                    return
+                }
+                var self = this
+                ElementPlus.ElMessageBox.confirm('??????????????? ' + this.selectedKeys.length + ' ????', '???', {
+                    confirmButtonText: '???',
+                    cancelButtonText: '???',
+                    type: 'warning'
+                }).then(function () {
+                    CrudEnhance.batchDelete(self.tbname, self.selectedKeys, function () {
+                        self.selectedKeys = []
+                        self.refreshData()
+                        ElementPlus.ElMessage.success('??????????')
+                    })
+                }).catch(function () {})
+            },
+            exportCurrent() {
+                CrudEnhance.exportCsv('???????_' + getNowDate() + '.csv', this.dataSource)
+            },
+            toReset(){
+                this.sobj = {}
+                this.selectedKeys = []
+                this.refreshData()
+            },
+            refreshData(){
+                let s = this.sobj
+
+                s.table = this.tbname
+                s.page = this.page.current
+                s.limit = this.page.limit
+                this.loading = true
+                ajaxCallback1('listPage',s,(r)=>{
+                    this.loading = false
+                    this.dataSource = r.rows
+                    this.page.total = r.total
+                })
+            },
+            showEdit(row){
+                this.showe = true
+                if(row){
+                    this.fobj = row
+                    editor.txt.html(row.note);
+                    showAttach("imgctn",row.img)
+                }else{
+                    this.fobj = {}
+                    editor.txt.html('');
+                    showAttach("imgctn",null)
+                }
+
+            },
+            submit1(){
+                this.$refs.fobjform1.validate((isValidate, model, errors) => {
+                    if(isValidate){
+                        this.save()
+                    }
+                })
+            },
+            save(){
+
+                this.fobj.table = this.tbname;this.fobj.ndate = null
+                this.fobj.note = editor.txt.html();
+                ajaxFormUploadFile((rimg)=>{
+                    this.fobj.img = rimg
+                    ajaxCallback("save",this.fobj,(rid) => {
+                        console.log(rid)
+                        this.showe = false
+                        this.refreshData()
+                    });
+                })
+
+            },
+            cancel(){
+                this.showe = false
+            },
+            del(id){
+                ElementPlus.ElMessageBox.alert('?????????', '???!', {
+                    confirmButtonText: '???',
+                    callback: (action) => {
+                        ajaxCallback1("delete",{table: this.tbname, id: id},(r) => {
+                            this.refreshData()
+                        });
+                    }
+                })
+            }
+        },
+    };
+    const app = Vue.createApp(App);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+    app.use(ElementPlus,{
+        locale: ElementPlusLocaleZhCn,
+    });
+    app.mount("#app");
+</script>
+
+<script type="text/javascript" src="__PUBLIC__/weditor/wangEditor.js"></script>
+
+<script type="text/javascript">
+    var E = window.wangEditor;
+    var editor = new E('#editor');
+    // ???? var editor = new E( document.getElementById('editor') )
+    editor.config.uploadImgShowBase64 = false;   // ??? base64 ??????
+    editor.config.uploadImgServer = _editorUpload;
+    editor.config.uploadVideoServer = _editorUploadVideo;
+    editor.config.uploadFileName = 'file';
+    editor.config.uploadVideoName = 'file';
+    editor.config.zIndex = 0;
+    editor.create()
+</script>
+</html>

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/crud-enhance.js"></script>
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/index.css" />
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/public.css" />
+    <script src="./__PUBLIC__/elementui-vue/vue.global.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/icons-vue.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/element-plus.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/zh-cn.js"></script>
+</head>
+<body>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm">
+    <input style="display: none;" id="selectimginput" onchange="showPicImg(this.files);" name="file" type="file"/>
+</form>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm2">
+    <input style="display: none;" id="selectimginput2" onchange="showPicImg2(this.files);" name="file" type="file"/>
+</form>
+<div id="app">
+    <el-container>
+        <el-header style="height: auto;">
+            <div class="searchctn">
+                <el-form :model="sobj" :inline="true" label-width="auto">
+                    <el-form-item label="标题">
+                        <el-input v-model="sobj.gname" ></el-input>
+                    </el-form-item>
+                    <el-form-item label="所属店铺">
+                        <el-input v-model="sobj.shop" ></el-input>
+                    </el-form-item>
+                    <el-form-item label="分类">
+                        <el-select
+                            v-model="searchCategoryKey"
+                            placeholder=""
+                            clearable
+                            filterable
+                            style="width: 220px"
+                            @change="onSearchCategoryChange"
+                        >
+                            <el-option
+                                v-for="opt in categoryFilterOptions"
+                                :key="(opt.tv||'')+'\t'+(opt.cv||'')"
+                                :label="opt.label"
+                                :value="categoryOptionValue(opt)"
+                            />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="refreshData">搜索</el-button>
+                        <el-button type="success" @click="toReset">重置</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+        </el-header>
+        <el-main>
+            <div class="datagridctn">
+                <div class="tablectn">
+                    <div class="tabletoolbarctn">
+                        <el-button type="danger" @click="showEdit(null)">新增</el-button>
+                        <el-button type="warning" :disabled="!selectedKeys.length" @click="batchDel">批量删除</el-button>
+                        <el-button type="primary" :disabled="!dataSource.length" @click="exportCurrent">导出CSV</el-button>
+                    </div>
+
+                    <el-table
+                        stripe
+                        v-loading="loading"
+                        :data="dataSource"
+                        current-row-key="id"
+                        :highlight-current-row="true"
+                        :show-overflow-tooltip="true"
+                        style="width: 100%"
+                        @selection-change="handleSelectionChange"
+                        @sort-change="handleSortChange"
+                        @filter-change="handleFilterChange">
+                        <el-table-column type="selection" width="55" align="center"></el-table-column>
+                        <el-table-column prop="id" sortable label="编号" width="100px" align="center"></el-table-column>
+                        <el-table-column prop="gname" label="标题" align="center"></el-table-column>
+                        <el-table-column label="图片" width="100px" align="center">
+                            <template #default="scope">
+                                <img :src="fileurl+scope.row.img" style="width: 50px;height: 50px;">
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="pf" sortable label="评分" align="center"></el-table-column>
+                        <el-table-column prop="mcount" sortable label="库存" align="center"></el-table-column>
+                        <el-table-column prop="price" sortable label="价格" align="center"></el-table-column>
+                        <el-table-column prop="shop" label="所属店铺" align="center"></el-table-column>
+                        <el-table-column label="分类" align="center" min-width="120">
+                            <template #default="scope">
+                                <span>{{ displayGoodCategory(scope.row) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                                prop="statecn"
+                                label="上架状态"
+                                align="center"
+                                :filters="stateFilters"
+                                :filter-multiple="false"
+                                column-key="statecn">
+                        </el-table-column>
+                        <el-table-column fixed="right" label="操作" width="260" align="center">
+                            <template #default="scope">
+                                <el-button link type="primary" size="small" @click="showEdit(scope.row)">查看编辑</el-button>
+                                <el-button link type="primary" size="small" @click="showStable(scope.row)">评论列表</el-button>
+                                <el-button link type="danger" size="small" @click="del(scope.row.id)">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <div class="paginationctn">
+                    <el-pagination v-model:current-page="page.current" v-model:page-size="page.limit" :page-sizes="[100, 200, 300, 400]" layout="total, sizes, prev, pager, next, jumper" :total="page.total" @size-change="refreshData" @current-change="refreshData"></el-pagination>
+                </div>
+            </div>
+
+            <div class="formdialog" v-show="showe">
+                <div class="formdialogtitle">查看编辑<span class="formdialogtitlegb" @click="showe=false"></span></div>
+                <el-form ref="fobjform1" :model="fobj" label-width="auto">
+                    <el-form-item label="标题" prop="gname" :rules="formRules">
+                        <el-input type="text" v-model="fobj.gname"></el-input>
+                    </el-form-item>
+                    <el-form-item label="评分" prop="pf" :rules="formRules">
+                        <el-input type="text" v-model="fobj.pf"></el-input>
+                    </el-form-item>
+                    <el-form-item v-if="luser.roletype=='1'" label="所属店铺" prop="sid">
+                        <el-select v-model="fobj.sid" class="m-2" placeholder="请选择" size="large" style="width: 240px">
+                            <el-option v-for="item in shoplist" :label="item.label" :value="item.value" ></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="分类" prop="typeid">
+                        <el-select :change="typeSelect()" v-model="fobj.typeid" class="m-2" placeholder="请选择" size="large" style="width: 240px">
+                            <el-option v-for="item in typelist" :label="item.label" :value="item.value" ></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="子分类" prop="ctypeid">
+                        <el-select v-model="fobj.ctypeid" class="m-2" placeholder="请选择" size="large" style="width: 240px">
+                            <el-option v-for="item in subtypelist" :label="item.label" :value="item.value" ></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="状态">
+                        <el-select v-model="fobj.statecn" class="m-2" placeholder="请选择" size="large" style="width: 240px">
+                            <el-option label="上架中" value="上架中" ></el-option>
+                            <el-option label="已下架" value="已下架" ></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="属性" prop="stype">
+                        <el-select v-model="fobj.stype" class="m-2" placeholder="请选择" size="large" style="width: 240px">
+                            <el-option label="新品" value="新品" ></el-option>
+                            <el-option label="热销" value="热销" ></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="库存" prop="mcount" :rules="formRules">
+                        <el-input type="number" v-model="fobj.mcount"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="价格" prop="price" :rules="formRules">
+                        <el-input type="number" v-model="fobj.price"></el-input>
+                    </el-form-item>
+
+                    <div style="text-align: center;margin-bottom: 20px;">
+                        <div style="width: 150px;margin-left: 35%;">
+                            <div style="text-align: center;">
+                                <div style="text-align: center;" id="imgctn"></div>
+                                <a href="#" onclick="getFileInput(this);">选择封面</a>
+                            </div>
+                        </div>
+                    </div>
+                    <el-form-item label="备注">
+                        <div id="editor" style="width: 480px;height: 400px;">
+
+                        </div>
+                    </el-form-item>
+                    <el-form-item style="text-align: center;margin-top: 50px;">
+                        <el-button type="success" @click="submit1">提交</el-button>
+                        <el-button type="danger" @click="cancel">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+
+            <el-dialog v-model="showt" title="该商品评价列表" width="70%">
+                <el-container>
+                    <el-header style="height: auto;">
+                        <div class="searchctn">
+                            <el-form :model="sobj2" :inline="true" label-width="auto">
+                                <el-form-item label="标题">
+                                    <el-input v-model="sobj2.gname" ></el-input>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" @click="refreshData2">搜索</el-button>
+                                    <el-button type="success" @click="toReset2">重置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+                    </el-header>
+                    <el-main>
+                        <div class="datagridctn">
+                            <div class="tablectn">
+                                <div class="tabletoolbarctn">
+                                    <el-button type="danger" @click="showEdit2(null)">新增</el-button>
+                                </div>
+
+                                <el-table stripe v-loading="loading2" :data="dataSource2" current-row-key="id" :highlight-current-row="true" :show-overflow-tooltip="true" style="width: 100%">
+                                    <el-table-column prop="id" sortable label="编号" align="center"></el-table-column>
+                                    <el-table-column prop="note" label="内容" align="center"></el-table-column>
+                                    <el-table-column prop="ndate" label="日期" align="center"></el-table-column>
+                                    <el-table-column prop="username" label="用户" align="center"></el-table-column>
+                                    <el-table-column fixed="right" label="操作" width="200" align="center">
+                                        <template #default="scope">
+                                            <el-button link type="primary" size="small" @click="showEdit2(scope.row)">查看编辑</el-button>
+                                            <el-button link type="danger" size="small" @click="del2(scope.row.id)">删除</el-button>
+                                        </template>
+                                    </el-table-column>
+                                </el-table>
+                            </div>
+
+                            <div class="paginationctn">
+                                <el-pagination v-model:current-page="page2.current" v-model:page-size="page2.limit" :page-sizes="[100, 200, 300, 400]" layout="total, sizes, prev, pager, next, jumper" :total="page2.total" @size-change="refreshData2" @current-change="refreshData2"></el-pagination>
+                            </div>
+                        </div>
+                        <div class="formdialog" v-show="showe2">
+                            <div class="formdialogtitle">查看编辑<span class="formdialogtitlegb" @click="showe2=false"></span></div>
+                            <el-form ref="fobjform2" :model="fobj2" label-width="auto">
+                                <el-form-item label="内容" prop="note" :rules="formRules">
+                                    <el-input type="textarea" v-model="fobj2.note"></el-input>
+                                </el-form-item>
+                                <!--<div style="text-align: center;margin-bottom: 20px;">
+                                    <div style="width: 150px;margin-left: 35%;">
+                                        <div style="text-align: center;">
+                                            <div style="text-align: center;" id="imgctn2"></div>
+                                            <a href="#" onclick="getFileInput2(this);">选择封面</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <el-form-item label="备注">
+                                    <div id="editor2" style="width: 480px;height: 400px;">
+
+                                    </div>
+                                </el-form-item>-->
+                                <el-form-item style="text-align: center;margin-top: 50px;">
+                                    <el-button type="success" @click="submit2">提交</el-button>
+                                    <el-button type="danger" @click="showe2=false">取消</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+                    </el-main>
+                    <el-footer></el-footer>
+                </el-container>
+
+            </el-dialog>
+
+        </el-main>
+        <el-footer></el-footer>
+    </el-container>
+</div>
+
+</body>
+<script>
+    const App = {
+        data() {
+            return {
+                formRules:[{required: true, message: '请检查输入...', trigger: 'blur'}],
+                fileurl:fileurl,
+                uploadUrl:uploadUrl,
+                luser:{},
+                typelist:[],
+                subtypelist:[],
+                shoplist:[],
+                tbname:'good',
+                showe:false,
+                sobj:{},
+                fobj:{
+                    typeid:0,
+                    ctypeid:0
+                },
+                page:{ current: 1, limit: 10, total: 100 },
+                selectedKeys:[],
+                loading:false,
+
+                dataSource:[],
+                stateFilters:[
+                    { text:'上架中', value:'上架中' },
+                    { text:'已下架', value:'已下架' },
+                ],
+                /** 分类筛选：来自接口 listGoodCategoryFilters（fs_good 去重），与列表「分类」同源 */
+                categoryFilterOptions: [],
+                searchCategoryKey: '',
+
+
+                tbname2:'replay',
+                pobj:{},
+                /** 当前弹窗对应的商品 id（评价 pid） */
+                goodReplayGid: null,
+                showt:false,
+                showe2:false,
+                sobj2:{},
+                fobj2:{
+
+                },
+                page2:{ current: 1, limit: 10, total: 100 },
+                selectedKeys2:[],
+                loading2:false,
+
+                dataSource2:[]
+            };
+        },
+        mounted() {
+            this.luser = userinfo
+            this.applyUrlShopScope()
+            let ownid = null
+            if(this.luser.roletype == '3'){
+                ownid = this.luser.sid
+            }
+            ajaxCallback1("list",{table:'type', ownid:ownid},(data) => {
+                for (let s of (data || [])) {
+                    s.label=s.title
+                    s.value = s.id+""
+                }
+                this.typelist = data || []
+                this.loadCategoryFilterOptions()
+                this.refreshData()
+            })
+
+            ajaxCallback1("list",{table:'shop'},(data) => {
+                for (let s of data) {
+                    s.label=s.sname
+                    s.value = s.id+""
+                }
+                this.shoplist = data
+            })
+        },
+        methods: {
+            /** 从商家运营详情等页跳转 ?sid= &sname= 时列表只显示该店商品 */
+            applyUrlShopScope() {
+                try {
+                    const sp = new URLSearchParams(window.location.search || '')
+                    const qs = sp.get('sid')
+                    const qn = sp.get('sname')
+                    if (!this.sobj) this.sobj = {}
+                    if (qs != null && String(qs).trim() !== '') {
+                        this.sobj.sid = String(qs).trim()
+                    }
+                    if (qn != null && String(qn).trim() !== '') {
+                        this.sobj.shop = String(qn).trim()
+                    }
+                } catch (e) {}
+            },
+            handleSelectionChange(rows){
+                this.selectedKeys = (rows || []).map(r => r.id)
+            },
+            handleSortChange(obj){
+                if(!obj || !obj.prop){
+                    delete this.sobj.sort
+                    delete this.sobj.order
+                }else{
+                    this.sobj.sort = obj.prop
+                    this.sobj.order = obj.order === 'ascending' ? 'asc' : (obj.order === 'descending' ? 'desc' : null)
+                }
+                this.refreshData()
+            },
+            handleFilterChange(filters){
+                if(!filters){ return }
+                if(filters.statecn){
+                    this.sobj.statecn = (filters.statecn && filters.statecn.length) ? filters.statecn[0] : null
+                }
+                this.refreshData()
+            },
+            batchDel(){
+                if(!this.selectedKeys || !this.selectedKeys.length){
+                    ElementPlus.ElMessage.warning('请先勾选要删除的行')
+                    return
+                }
+                ElementPlus.ElMessageBox.confirm('确认批量删除选中的 '+this.selectedKeys.length+' 条数据吗？', '提示', {
+                    confirmButtonText: '确认',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    CrudEnhance.batchDelete(this.tbname, this.selectedKeys, () => {
+                        this.selectedKeys = []
+                        this.refreshData()
+                        ElementPlus.ElMessage.success('批量删除完成')
+                    })
+                }).catch(() => {})
+            },
+            exportCurrent(){
+                CrudEnhance.exportCsv('商品管理_'+getNowDate()+'.csv', this.dataSource)
+            },
+            typeSelect(){
+                ajaxCallback1("list",{table:'type2', pid: this.fobj.typeid},(data) => {
+                    for (let s of data) {
+                        s.label=s.title
+                        s.value = s.id
+                    }
+                    this.subtypelist = data
+                    if(this.fobj.typeid && !this.fobj.ctypeid && data && data.length){
+                        this.fobj.ctypeid = data[0].id
+                    }
+                })
+            },
+            toReset(){
+                this.sobj = {}
+                this.searchCategoryKey = ''
+                this.refreshData()
+            },
+            /** 与后端 goodShelfCategoryLabel 一致：优先展示商品表 type（货架短名），否则 ctype */
+            displayGoodCategory(row) {
+                if (!row) return '-'
+                const t = row.type != null ? String(row.type).trim() : ''
+                const c = row.ctype != null ? String(row.ctype).trim() : ''
+                if (t) return t
+                if (c) return c
+                return '-'
+            },
+            categoryOptionValue(opt) {
+                const tv = (opt && opt.tv != null) ? String(opt.tv) : ''
+                const cv = (opt && opt.cv != null) ? String(opt.cv) : ''
+                return tv + '\t' + cv
+            },
+            loadCategoryFilterOptions() {
+                const params = {}
+                const qsSid = this.sobj && this.sobj.sid != null ? String(this.sobj.sid).trim() : ''
+                if (qsSid && /^\d+$/.test(qsSid)) {
+                    params.sid = qsSid
+                } else if (this.luser && String(this.luser.roletype) === '3' && this.luser.sid) {
+                    params.sid = String(this.luser.sid)
+                }
+                const self = this
+                ajaxCallback1('listGoodCategoryFilters', params, function (data) {
+                    self.categoryFilterOptions = data || []
+                })
+            },
+            onSearchCategoryChange() {
+                this.page.current = 1
+                this.refreshData()
+            },
+            applyCategoryFilterToSobj() {
+                if (!this.sobj) this.sobj = {}
+                const k = this.searchCategoryKey
+                if (k == null || String(k).trim() === '') {
+                    delete this.sobj.type
+                    delete this.sobj.ctype
+                    return
+                }
+                const parts = String(k).split('\t')
+                const tv = (parts[0] != null ? parts[0] : '').trim()
+                const cv = (parts.length > 1 ? parts[1] : '').trim()
+                if (tv) this.sobj.type = tv
+                else delete this.sobj.type
+                if (cv) this.sobj.ctype = cv
+                else delete this.sobj.ctype
+            },
+            refreshData(){
+                let s = this.sobj
+                this.applyCategoryFilterToSobj()
+                s.table = this.tbname
+                s.page = this.page.current
+                s.limit = this.page.limit
+                this.loading = true
+                if(this.luser.roletype=='3'){
+                    s.sid = this.luser.sid
+                }
+                ajaxCallback1('listPage',s,(r)=>{
+                    this.loading = false
+                    this.dataSource = r.rows
+                    this.page.total = r.total
+                })
+            },
+            showEdit(row){
+                this.showe = true
+                if(row){
+                    this.fobj = row
+                    editor.txt.html(row.note);
+                    showAttach("imgctn",row.img)
+                }else{
+                    this.fobj = {}
+                    editor.txt.html("");
+                    showAttach("imgctn","")
+                }
+
+            },
+            submit1(){
+                this.$refs.fobjform1.validate((isValidate, model, errors) => {
+                    if(isValidate){
+                        this.save()
+                    }
+                })
+            },
+            save(){
+                this.fobj.table = this.tbname;this.fobj.ndate = null
+                this.fobj.note = editor.txt.html();
+                if(userinfo.roletype == '3'){
+                    this.fobj.sid = userinfo.sid
+                }
+                this.fobj.shop = (this.shoplist.find((item) => item.value == this.fobj.sid)).label
+                this.fobj.type = (this.typelist.find((item) => item.value == this.fobj.typeid)).label
+                this.fobj.ctype = (this.subtypelist.find((item) => item.value == this.fobj.ctypeid)).label
+                ajaxFormUploadFile((rimg)=>{
+                    this.fobj.img = rimg
+                    ajaxCallback("save",this.fobj,(rid) => {
+                        console.log(rid)
+                        this.showe = false
+                        this.refreshData()
+                    });
+                })
+
+            },
+            cancel(){
+                this.showe = false
+            },
+            del(id){
+                ElementPlus.ElMessageBox.alert('确认删除吗?', '提示!', {
+                    confirmButtonText: '确认',
+                    callback: (action) => {
+                        ajaxCallback1("delete",{table: this.tbname, id: id},(r) => {
+                            this.refreshData()
+                        });
+                    }
+                })
+            },
+            sortChange(key, sort) {
+                this.sobj.sort = key
+                this.sobj.order = sort
+                this.refreshData()
+            },
+
+
+            showStable(row){
+                this.showt = true
+                this.pobj = row
+                this.goodReplayGid = row && row.id != null ? row.id : null
+                this.sobj2 = { type: '1', pid: this.goodReplayGid != null ? String(this.goodReplayGid) : '' }
+                this.page2.current = 1
+                this.refreshData2()
+            },
+            toReset2(){
+                const gid = this.goodReplayGid
+                this.sobj2 = { type: '1', pid: gid != null ? String(gid) : '' }
+                this.goodReplayGid = gid
+                this.page2.current = 1
+                this.refreshData2()
+            },
+            refreshData2(){
+                let s = this.sobj2
+                s.table = this.tbname2
+                s.page = this.page2.current
+                s.limit = this.page2.limit
+                s.type = '1'
+                if (this.goodReplayGid != null && this.goodReplayGid !== '') {
+                    s.pid = String(this.goodReplayGid)
+                }
+                this.loading2 = true
+                ajaxCallback1('listPage',s,(r)=>{
+                    this.loading2 = false
+                    this.dataSource2 = r.rows
+                    this.page2.total = r.total
+                })
+            },
+            showEdit2(row){
+                this.showe2 = true
+                if(row){
+                    this.fobj2 = row
+                    //editor2.txt.html(row.note);
+                    //showAttach("imgctn",row.img)
+                }else{
+                    this.fobj2 = {}
+                    //editor2.txt.html("");
+                }
+
+            },
+            submit2(){
+                this.$refs.fobjform2.validate((isValidate, model, errors) => {
+                    if(isValidate){
+                        this.save2()
+                    }
+                })
+            },
+            save2(){
+                this.fobj2.table = this.tbname2
+                if (!this.fobj2.id) {
+                    this.fobj2.pid = String(this.pobj.id)
+                    this.fobj2.username = userinfo.username
+                    this.fobj2.uid = userinfo.id
+                    this.fobj2.type = '1'
+                }
+                ajaxCallback1("save",this.fobj2,(rid) => {
+                    console.log(rid)
+                    this.showe2 = false
+                    this.refreshData2()
+                });
+            },
+            cancel2(){
+                this.showe2 = false
+            },
+            del2(id){
+                ajaxCallback1("delete",{table: this.tbname2, id: id},(r) => {
+                    this.refreshData2()
+                });
+            },
+            sortChange2(key, sort) {
+                this.sobj2.sort = key
+                this.sobj2.order = sort
+                this.refreshData2()
+            },
+        },
+    };
+    const app = Vue.createApp(App);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+    app.use(ElementPlus,{
+        locale: ElementPlusLocaleZhCn,
+    });
+    app.mount("#app");
+</script>
+<script type="text/javascript" src="__PUBLIC__/weditor/wangEditor.js"></script>
+
+<script type="text/javascript">
+    var E = window.wangEditor;
+    var editor = new E('#editor');
+    // 或者 var editor = new E( document.getElementById('editor') )
+    editor.config.uploadImgShowBase64 = false;   // 使用 base64 保存图片
+    editor.config.uploadImgServer = _editorUpload;
+    editor.config.uploadVideoServer = _editorUploadVideo;
+    editor.config.uploadFileName = 'file';
+    editor.config.uploadVideoName = 'file';
+    editor.config.zIndex = 0;
+    editor.create()
+
+
+
+    /*var editor2 = new E('#editor2');
+    editor2.config.uploadImgShowBase64 = false;   // 使用 base64 保存图片
+    editor2.config.uploadImgServer = _editorUpload;
+    editor2.config.uploadVideoServer = _editorUploadVideo;
+    editor2.config.uploadFileName = 'file';
+    editor2.config.uploadVideoName = 'file';
+    editor2.config.zIndex = 0;
+    editor2.create()*/
+</script>
+</html>

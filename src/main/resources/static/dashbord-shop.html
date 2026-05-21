@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>商家运营详情</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="icon" href="./__PUBLIC__/layuimini/images/favicon.ico">
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/lib/layui-v2.5.5/css/layui.css" media="all">
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/css/layuimini.css?v=2.0.4.2" media="all">
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/layuimini/lib/layui-v2.5.5/layui.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <style>
+        body { background-color: #f5f6fa; font-family: "Microsoft YaHei", Arial, sans-serif; color: #1f2328; }
+        .ds-wrap { padding: 20px 24px 28px; }
+        .ds-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .ds-title { font-size: 20px; font-weight: 700; color: #1f2328; }
+        .ds-back { font-size: 14px; color: #2563eb; cursor: pointer; }
+        .ds-back:hover { text-decoration: underline; }
+        .ds-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+        @media (min-width: 768px) { .ds-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        .ds-card {
+            background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+            border: 1px solid rgba(31,35,40,0.04);
+        }
+        .ds-card .k { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+        .ds-card .v { font-size: 28px; font-weight: 700; color: #ff6a00; }
+        .ds-section { background: #fff; border-radius: 10px; padding: 18px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); }
+        .ds-section-title { font-size: 15px; font-weight: 700; color: #374151; margin-bottom: 14px; }
+        .ds-table { width: 100%; border-collapse: collapse; }
+        .ds-table th, .ds-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f3f4f6; }
+        .ds-table th { font-size: 13px; color: #6b7280; font-weight: 600; }
+        .ds-table td { font-size: 14px; color: #374151; }
+        .ds-link { color: #2563eb; cursor: pointer; }
+        .ds-link:hover { text-decoration: underline; }
+        .ds-empty { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+        .ds-ai-hint { font-size: 12px; color: #6b7280; margin-bottom: 12px; line-height: 1.6; }
+        .ds-ai-ta {
+            width: 100%; min-height: 240px; margin-top: 12px; padding: 12px 14px;
+            border: 1px solid #e5e7eb; border-radius: 10px; font-size: 13px; line-height: 1.65;
+            box-sizing: border-box; font-family: inherit; resize: vertical;
+        }
+        .ds-ai-actions { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .ds-ai-status { font-size: 12px; color: #b45309; }
+        .ds-wc-hint { font-size: 12px; color: #6b7280; margin-bottom: 12px; line-height: 1.65; }
+        .ds-wc-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .ds-wc-meta { font-size: 12px; color: #909399; margin-left: 4px; flex: 1 1 auto; min-width: 160px; }
+        .ds-wc-area {
+            min-height: 300px;
+            border: 1px dashed #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 12px 18px;
+            background: linear-gradient(180deg, #fafbff 0%, #fff 100%);
+            text-align: center;
+            box-sizing: border-box;
+        }
+        /* 与小程序 replay-word-cloud 一致：扁椭圆容器 + 词在椭圆内螺旋分布 */
+        .ds-wc-oval-wrap {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 4px 0 8px;
+            box-sizing: border-box;
+        }
+        .ds-wc-oval-inner {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #fbfcfe 0%, #f4f6f9 100%);
+            border: 1px solid #e8ecf1;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        .ds-wc-oval-word {
+            position: absolute;
+            box-sizing: border-box;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="ds-wrap">
+    <div class="ds-header">
+        <div class="ds-title" id="shopName">商家运营详情</div>
+        <a class="ds-back" href="javascript:;" onclick="goBack()"><i class="fa fa-arrow-left"></i> 返回数据分析</a>
+    </div>
+
+    <div class="ds-cards">
+        <div class="ds-card"><div class="k">商品数量</div><div class="v" id="stat_good">0</div></div>
+        <div class="ds-card"><div class="k">用户评价</div><div class="v" id="stat_replay">0</div></div>
+        <div class="ds-card"><div class="k">好评率</div><div class="v" id="stat_goodRate">-</div></div>
+        <div class="ds-card"><div class="k">店铺文章</div><div class="v" id="stat_blog">0</div></div>
+        <div class="ds-card"><div class="k">问答数量</div><div class="v" id="stat_qa">0</div></div>
+        <div class="ds-card"><div class="k">优惠券发放</div><div class="v" id="stat_coupon">0</div></div>
+        <div class="ds-card"><div class="k">待处理申诉</div><div class="v" id="stat_appeal">0</div></div>
+        <div class="ds-card"><div class="k">滞销商品</div><div class="v" id="stat_unsold">0</div></div>
+    </div>
+
+    <div class="ds-section">
+        <div class="ds-section-title">热销商品 Top5</div>
+        <table class="ds-table" id="hotGoodTable">
+            <thead><tr><th>排名</th><th>商品名</th><th>销量</th></tr></thead>
+            <tbody id="hotGoodBody"></tbody>
+        </table>
+        <div class="ds-empty" id="hotGoodEmpty" style="display:none;">暂无销量数据</div>
+    </div>
+
+    <div class="ds-section" id="wordCloudSection" style="display:none;">
+        <div class="ds-section-title"><i class="fa fa-cloud"></i> 评价词云（单店）</div>
+        <p class="ds-wc-hint">与小程序商家端「运营数据」评价词云口径一致：统计该店在售菜品近 N 天的菜品评价文本并分词聚合。字号越大表示相对提及越多。</p>
+        <div class="ds-wc-toolbar">
+            <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" id="wcBtn7">近 7 天</button>
+            <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" id="wcBtn30">近 30 天</button>
+            <button type="button" class="layui-btn layui-btn-warm layui-btn-sm" id="wcBtnRebuild"><i class="fa fa-refresh"></i> 刷新词云</button>
+            <span class="ds-wc-meta" id="wcMeta"></span>
+        </div>
+        <div class="ds-wc-area" id="wcArea">
+            <div class="ds-empty" id="wcPlaceholder">请先选择店铺</div>
+        </div>
+    </div>
+
+    <div class="ds-section" id="aiDecisionSection" style="display:none;">
+        <div class="ds-section-title"><i class="fa fa-magic"></i> 千帆 · 运营决策分析与推送</div>
+        <p class="ds-ai-hint">根据本页指标与后台订单、菜品、评价、优惠券、申诉等事实数据，由百度千帆生成<strong>决策向</strong>建议（菜品调整、券活动、口碑与口味/服务整改、申诉处理等）。生成后可编辑，再推送到该店商家小程序「消息通知 → 系统」。</p>
+        <div class="ds-ai-actions">
+            <button type="button" class="layui-btn layui-btn-normal" id="btnGenShopDecision"><i class="fa fa-play"></i> 生成 AI 决策建议</button>
+            <button type="button" class="layui-btn layui-btn-warm" id="btnPushShopDecision" disabled><i class="fa fa-send"></i> 推送到商家消息</button>
+            <span class="ds-ai-status" id="aiDecisionStatus"></span>
+        </div>
+        <textarea id="aiDecisionText" class="ds-ai-ta" maxlength="8000" placeholder="点击「生成」后显示全文（约 15～90 秒），确认无误后再推送。"></textarea>
+    </div>
+
+    <div class="ds-section">
+        <div class="ds-section-title">快捷操作</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <a class="ds-link" href="javascript:;" onclick="openShopScopedPage('shopreplaymap-el.html','商家管理')">商家管理</a>
+            <a class="ds-link" href="javascript:;" onclick="openShopScopedPage('goodreplay-el.html','商品管理')">商品管理</a>
+            <a class="ds-link" href="javascript:;" onclick="openShopScopedPage('replay-appeal-el.html','评价申诉管理')">评价申诉</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    var sid = '';
+    var sname = '';
+    /** 词云统计窗口，与 shopWordCloud 接口 days 一致 */
+    var wcDays = 30;
+
+    function getQuery(name) {
+        var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+        return m ? decodeURIComponent(m[1]) : '';
+    }
+
+    function goBack() {
+        try {
+            if (window.parent && window.parent.layui && window.parent.layui.miniTab) {
+                window.parent.layui.miniTab.deleteCurrentByIframe();
+                return;
+            }
+        } catch (e) {}
+        window.location.href = 'dashbord.html';
+    }
+
+    function openPage(href, title) {
+        try {
+            if (window.parent && window.parent.layui && window.parent.layui.miniTab && window.parent.layui.miniTab.openNewTabByIframe) {
+                window.parent.layui.miniTab.openNewTabByIframe({ href: href, title: title || '', icon: 'fa fa-file-text' });
+                return;
+            }
+        } catch (e) {}
+        window.location.href = href;
+    }
+
+    /** 从本页进入管理页时带上当前店铺，打开后列表仅与该店相关 */
+    function openShopScopedPage(htmlName, title) {
+        var href = htmlName;
+        if (sid) {
+            href += '?sid=' + encodeURIComponent(sid);
+            if (sname) {
+                href += '&sname=' + encodeURIComponent(sname);
+            }
+        }
+        openPage(href, title);
+    }
+
+    function safeNum(n) { var v = parseFloat(n); return isNaN(v) ? null : v; }
+
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function setWcDayButtons() {
+        if (wcDays === 7) {
+            $('#wcBtn7').removeClass('layui-btn-primary').addClass('layui-btn-normal');
+            $('#wcBtn30').removeClass('layui-btn-normal').addClass('layui-btn-primary');
+        } else {
+            $('#wcBtn30').removeClass('layui-btn-primary').addClass('layui-btn-normal');
+            $('#wcBtn7').removeClass('layui-btn-normal').addClass('layui-btn-primary');
+        }
+    }
+
+    /** 与小程序 replay-word-cloud 数据源一致 */
+    function wcPatchItems(arr) {
+        if (!arr || !arr.length) return [];
+        return arr
+            .filter(function (x) { return x && x.name; })
+            .map(function (x) {
+                return {
+                    name: String(x.name).trim(),
+                    value: Math.max(1, parseInt(x.value, 10) || 1),
+                    freq: x.freq
+                };
+            })
+            .filter(function (x) { return x.name; });
+    }
+
+    /** 纯文字：鲜艳色 + 频次非线性字号（与小程序 replay-word-cloud 一致） */
+    function wcBuildTextStyle(item, idx, vmax, vmin) {
+        var v = Math.max(1, parseInt(item.value, 10) || 1);
+        var t = vmax > vmin ? (v - vmin) / (vmax - vmin) : 1;
+        if (t > 1) t = 1;
+        if (t < 0) t = 0;
+        var te = Math.pow(t, 1.28);
+        var size = Math.round(9 + te * 22);
+        var colors = ['#e53935', '#ff6d00', '#ffd600', '#00c853', '#00b0ff', '#7c4dff', '#ff4081'];
+        var name = String(item.name || '');
+        var h = 0;
+        for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+        var color = colors[(h + idx) % colors.length];
+        var weight = t > 0.72 ? 800 : t > 0.4 ? 700 : t > 0.15 ? 600 : 500;
+        return 'font-size:' + size + 'px;font-weight:' + weight + ';color:' + color + ';background:transparent;padding:2px 8px;line-height:1.35;white-space:nowrap;max-width:48%;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 2px rgba(255,255,255,0.98),0 1px 4px rgba(15,23,42,0.18);';
+    }
+
+    /** 椭圆内黄金角螺旋（与小程序 layoutOvalPlaced 一致） */
+    function wcLayoutOvalPlaced(rows) {
+        if (!rows.length) return [];
+        var sorted = rows.slice().sort(function (a, b) { return b.value - a.value; });
+        var vals = sorted.map(function (r) { return r.value; });
+        var vmax = Math.max.apply(null, vals);
+        var vmin = Math.min.apply(null, vals);
+        var n = sorted.length;
+        var golden = 2.39996322972865332;
+        var cx = 50;
+        var cy = 50;
+        var a = 43;
+        var b = 31;
+        var out = [];
+        for (var idx = 0; idx < sorted.length; idx++) {
+            var r = sorted[idx];
+            var x;
+            var y;
+            var z = n - idx + 2;
+            if (n === 1) {
+                x = cx;
+                y = cy;
+            } else {
+                var ang = idx * golden;
+                var rr = idx === 0 ? 0.12 : 0.08 + 0.9 * Math.pow(idx / (n - 1), 0.48);
+                x = cx + a * rr * Math.cos(ang);
+                y = cy + b * rr * Math.sin(ang);
+            }
+            var place = 'left:' + x.toFixed(1) + '%;top:' + y.toFixed(1) + '%;transform:translate(-50%,-50%);z-index:' + z + ';';
+            var pill = wcBuildTextStyle(r, idx, vmax, vmin);
+            var tip = '词频 ' + (r.freq != null ? r.freq : '');
+            out.push({ name: r.name, style: place + pill, title: tip });
+        }
+        return out;
+    }
+
+    function renderWordCloudItems(items) {
+        var list = wcPatchItems(items || []);
+        if (!list.length) {
+            $('#wcArea').html('<div class="ds-empty">暂无有效评价词（需有菜品评价数据）</div>');
+            return;
+        }
+        var placed = wcLayoutOvalPlaced(list);
+        var html = '<div class="ds-wc-oval-wrap"><div class="ds-wc-oval-inner">';
+        placed.forEach(function (w) {
+            html += '<span class="ds-wc-oval-word" style="' + w.style + '" title="' + escapeHtml(w.title) + '">' + escapeHtml(w.name) + '</span>';
+        });
+        html += '</div></div>';
+        $('#wcArea').html(html);
+    }
+
+    function loadWordCloud(forceRebuild) {
+        if (!sid) return;
+        $('#wcMeta').text(forceRebuild ? '正在重建词云…' : '加载中…');
+        $('#wcArea').html('<div class="ds-empty">加载中…</div>');
+        $.ajax({
+            type: 'GET',
+            url: clientUrl + (forceRebuild ? 'rebuildShopWordCloud' : 'shopWordCloud'),
+            data: { sid: sid, days: wcDays, topN: 80, minFreq: 1 },
+            dataType: 'json',
+            timeout: 90000,
+            success: function (res) {
+                if (!res || res.ok === false) {
+                    var err = (res && res.error) ? String(res.error) : '词云加载失败';
+                    $('#wcArea').html('<div class="ds-empty">' + escapeHtml(err) + '</div>');
+                    $('#wcMeta').text('');
+                    return;
+                }
+                var items = res.items || [];
+                var meta = '近 ' + (res.days != null ? res.days : wcDays) + ' 天 · 参与评价 ' + (res.sourceCount != null ? res.sourceCount : 0) + ' 条';
+                if (res.updatedAt) meta += ' · 更新 ' + res.updatedAt;
+                if (res.fromCache === false) meta += ' · 已即时重算';
+                $('#wcMeta').text(meta);
+                renderWordCloudItems(items);
+            },
+            error: function () {
+                $('#wcArea').html('<div class="ds-empty">词云接口请求失败，请检查网络或后端服务</div>');
+                $('#wcMeta').text('');
+            }
+        });
+    }
+
+    function loadShopDetail() {
+        sid = getQuery('sid');
+        sname = getQuery('sname') || '';
+        if (!sid) {
+            $('#shopName').text('请选择商家');
+            $('#wordCloudSection').hide();
+            return;
+        }
+        $('#wordCloudSection').show();
+        $('#shopName').text('商家运营：' + (sname || ('#' + sid)));
+
+        var sidStr = sid + '';
+
+        ajaxCallback1('list', { table: 'good', sid: sid }, function (list) {
+            var goods = list || [];
+            $('#stat_good').text(goods.length);
+            var totalXl = 0, unsold = 0;
+            goods.forEach(function (g) { var x = parseInt(g.xl || 0, 10); totalXl += x; if (!x) unsold++; });
+            $('#stat_unsold').text(unsold);
+            var top5 = goods.slice().sort(function (a, b) { return (parseInt(b.xl || 0, 10) - parseInt(a.xl || 0, 10)); }).slice(0, 5);
+            var tbody = $('#hotGoodBody');
+            if (top5.length) {
+                $('#hotGoodEmpty').hide();
+                var html = '';
+                top5.forEach(function (g, i) {
+                    html += '<tr><td>' + (i + 1) + '</td><td>' + (g.gname || '未命名') + '</td><td>' + (g.xl || 0) + '</td></tr>';
+                });
+                tbody.html(html);
+            } else {
+                tbody.html('');
+                $('#hotGoodEmpty').show();
+            }
+        });
+
+        var sidNum = parseInt(sidStr, 10);
+        var replaySql = 'select r.* from fs_replay r inner join fs_good g on r.type=1 and cast(r.pid as unsigned)=g.id where g.sid=' + sidNum;
+        ajaxCallback1('listPageSql', { sql: replaySql, page: 1, limit: 8000, sort: 'r.id', order: 'desc' }, function (r) {
+            var replays = (r && r.rows) ? r.rows : [];
+            var total = (r && r.total != null) ? r.total : replays.length;
+            $('#stat_replay').text(total);
+            var withPf = replays.filter(function (x) { return x.pf != null && x.pf !== ''; });
+            var goodCnt = withPf.filter(function (x) { return parseFloat(x.pf) >= 4; }).length;
+            if (withPf.length) {
+                $('#stat_goodRate').text(Math.round(goodCnt / withPf.length * 100) + '%');
+            } else {
+                $('#stat_goodRate').text('-');
+            }
+        });
+
+        ajaxCallback1('list', { table: 'blog', sid: sid }, function (list) {
+            $('#stat_blog').text((list || []).length);
+        });
+
+        ajaxCallback1('list', { table: 'shop_qa', sid: sid, qtype: 'Q' }, function (qs) {
+            $('#stat_qa').text((qs || []).length);
+        });
+
+        ajaxCallback1('list', { table: 'youhuiquan', sid: sid }, function (list) {
+            var total = (list || []).reduce(function (s, i) { return s + (parseInt(i.total || 0, 10)); }, 0);
+            $('#stat_coupon').text(total);
+        });
+
+        ajaxCallback1('list', { table: 'replay_appeal', sid: sid, statecn: '待处理' }, function (list) {
+            $('#stat_appeal').text((list || []).length);
+        });
+
+        setWcDayButtons();
+        loadWordCloud(false);
+    }
+
+    function collectShopPageDigest() {
+        var lines = [];
+        lines.push('店铺ID:' + sid + ' 名称:' + (sname || ''));
+        lines.push('商品数量:' + $('#stat_good').text() + ' 滞销SKU:' + $('#stat_unsold').text());
+        lines.push('用户评价条数:' + $('#stat_replay').text() + ' 好评率:' + $('#stat_goodRate').text());
+        lines.push('店铺文章:' + $('#stat_blog').text() + ' 问答:' + $('#stat_qa').text());
+        lines.push('优惠券发放(累计人次):' + $('#stat_coupon').text() + ' 待处理申诉:' + $('#stat_appeal').text());
+        var hot = $('#hotGoodBody tr').map(function () {
+            return $(this).text().replace(/\s+/g, ' ').trim();
+        }).get().join(' | ');
+        if (hot) lines.push('热销Top表格摘要: ' + hot);
+        return lines.join('\n');
+    }
+
+    function formatNdateShop() {
+        var d = new Date();
+        function p(n) { return (n < 10 ? '0' : '') + n; }
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+
+    function showAiSectionIfAllowed() {
+        try {
+            if (typeof userinfo !== 'undefined' && userinfo && String(userinfo.roletype) === '3') {
+                return;
+            }
+            $('#aiDecisionSection').show();
+        } catch (e) {}
+    }
+
+    $(function () {
+        loadShopDetail();
+        showAiSectionIfAllowed();
+
+        $('#wcBtn7').on('click', function () {
+            wcDays = 7;
+            setWcDayButtons();
+            loadWordCloud(false);
+        });
+        $('#wcBtn30').on('click', function () {
+            wcDays = 30;
+            setWcDayButtons();
+            loadWordCloud(false);
+        });
+        $('#wcBtnRebuild').on('click', function () {
+            loadWordCloud(true);
+        });
+
+        /* Layui 的 layer 必须 layui.use 预加载，否则 layui.layer 为 undefined，L.load 会抛错且不会发起 ajax */
+        layui.use(['layer'], function () {
+            var L = layui.layer;
+
+            $('#btnGenShopDecision').on('click', function () {
+                if (!sid) return;
+                var digest = collectShopPageDigest();
+                $('#aiDecisionStatus').text('千帆生成中，请稍候…');
+                $('#btnGenShopDecision').prop('disabled', true);
+                $('#btnPushShopDecision').prop('disabled', true);
+                $('#aiDecisionText').val('');
+                var lid;
+                try {
+                    lid = L.load(2, { shade: 0.12 });
+                } catch (eLoad) {
+                    lid = null;
+                }
+                $.ajax({
+                    type: 'GET',
+                    url: clientUrl + 'aiOpsShopAdviceJ',
+                    dataType: 'jsonp',
+                    jsonp: 'callback',
+                    data: { sid: sid, days: 30, mode: 'decision', digest: digest.slice(0, 2400) },
+                    timeout: 120000,
+                    success: function (res) {
+                        try {
+                            if (lid != null) L.close(lid);
+                        } catch (e1) {}
+                        $('#btnGenShopDecision').prop('disabled', false);
+                        if (!res || !res.ok) {
+                            $('#aiDecisionStatus').text('失败：' + ((res && res.error) ? res.error : '未知'));
+                            L.msg('生成失败', { time: 3000 });
+                            return;
+                        }
+                        $('#aiDecisionText').val((res.text != null) ? String(res.text) : '');
+                        $('#aiDecisionStatus').text('已生成，请核对后可推送。');
+                        $('#btnPushShopDecision').prop('disabled', false);
+                        L.msg('已生成，可编辑后推送', { time: 2000 });
+                    },
+                    error: function () {
+                        try {
+                            if (lid != null) L.close(lid);
+                        } catch (e2) {}
+                        $('#btnGenShopDecision').prop('disabled', false);
+                        $('#aiDecisionStatus').text('请求失败或超时');
+                        L.msg('请求失败', { time: 3000 });
+                    }
+                });
+            });
+
+            $('#btnPushShopDecision').on('click', function () {
+                if (!sid) return;
+                var body = ($('#aiDecisionText').val() || '').trim();
+                if (!body) {
+                    L.msg('请先生成或填写决策建议正文');
+                    return;
+                }
+                var head = '【平台运营决策参考】店铺：' + (sname || '') + '（ID ' + sid + '）\n\n';
+                var note = head + body;
+                if (note.length > 8000) note = note.slice(0, 7997) + '...';
+                var payload = {
+                    table: 'sysmsg',
+                    title: '平台运营决策建议',
+                    note: note,
+                    ndate: formatNdateShop(),
+                    type: 'system',
+                    sid: parseInt(sid, 10),
+                    shop: sname || '',
+                    state: 1,
+                    biztype: 'admin_ai_ops_decision'
+                };
+                $('#btnPushShopDecision').prop('disabled', true);
+                ajaxSavePost(payload, function (data) {
+                    $('#btnPushShopDecision').prop('disabled', false);
+                    if (data == null) {
+                        L.msg('推送失败，请重试');
+                        return;
+                    }
+                    L.msg('已推送至商家小程序系统消息');
+                    $('#aiDecisionStatus').text('已推送。');
+                }, true);
+            });
+        });
+    });
+</script>
+</body>
+</html>

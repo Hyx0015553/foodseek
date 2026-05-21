@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/crud-enhance.js"></script>
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/index.css" />
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/public.css" />
+    <script src="./__PUBLIC__/elementui-vue/vue.global.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/icons-vue.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/element-plus.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/zh-cn.js"></script>
+</head>
+<body>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm">
+    <input style="display: none;" id="selectimginput" onchange="showPicImg(this.files);" name="file" type="file"/>
+</form>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm2">
+    <input style="display: none;" id="selectimginput2" onchange="showPicImg2(this.files);" name="file" type="file"/>
+</form>
+<div id="app">
+    <el-container>
+        <el-header style="height: auto;">
+            <div class="searchctn">
+                <el-form :model="sobj" :inline="true" label-width="auto">
+                    <el-form-item label="数据视图">
+                        <el-radio-group v-model="couponMode" @change="onCouponModeChange">
+                            <el-radio-button label="tpl">券模板 (typeid=1)</el-radio-button>
+                            <el-radio-button label="user">用户持有券 (typeid=2)</el-radio-button>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="用户ID" v-if="couponMode==='user'">
+                        <el-input v-model="sobj.uid" placeholder="可选，精确筛选领取人" clearable style="width:160px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="备注">
+                        <el-input v-model="sobj.note" placeholder="备注关键词" clearable style="width: 200px"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="refreshData">搜索</el-button>
+                        <el-button type="success" @click="toReset">重置</el-button>
+                    </el-form-item>
+                </el-form>
+                <el-alert v-if="couponMode==='tpl'" type="info" :closable="false" show-icon style="margin-bottom:10px"
+                    title="商家在「店铺优惠券」维护模板；用户可领取"></el-alert>
+                <el-alert v-else type="success" :closable="false" show-icon style="margin-bottom:10px"
+                    title="用户领券记录。"></el-alert>
+            </div>
+        </el-header>
+        <el-main>
+            <div class="datagridctn">
+                <div class="tablectn">
+                    <div class="tabletoolbarctn">
+                        <el-button type="danger" @click="showEdit(null)" v-if="couponMode==='tpl'">新增券模板</el-button>
+                        <span v-else style="color:#909399;font-size:13px;">用户券由小程序领取产生</span>
+                        <el-button type="warning" :disabled="!selectedKeys.length" @click="batchDel">批量删除</el-button>
+                        <el-button type="primary" :disabled="!dataSource.length" @click="exportCurrent">导出CSV</el-button>
+                    </div>
+
+                    <el-table stripe v-loading="loading" :data="dataSource" current-row-key="id" :highlight-current-row="true" :show-overflow-tooltip="true" style="width: 100%"
+                              @selection-change="handleSelectionChange"
+                              @sort-change="handleSortChange">
+                        <el-table-column type="selection" width="48" align="center"></el-table-column>
+                        <el-table-column prop="id" sortable label="编号" width="100px" align="center"></el-table-column>
+                        <el-table-column v-if="couponMode==='user'" prop="uid" label="用户ID" width="90" align="center"></el-table-column>
+                        <el-table-column v-if="couponMode==='user'" prop="username" label="用户名" width="100" align="center"></el-table-column>
+                        <el-table-column v-if="couponMode==='user'" prop="pid" label="模板ID" width="90" align="center"></el-table-column>
+                        <el-table-column v-if="couponMode==='user'" prop="sid" label="店铺ID" width="90" align="center"></el-table-column>
+                        <el-table-column v-if="couponMode==='user'" prop="statecn" label="券状态" width="100" align="center"></el-table-column>
+
+                        <el-table-column v-if="couponMode==='tpl'" prop="coupontype" label="类型" width="90" align="center">
+                            <template #default="scope">{{ scope.row.coupontype == 1 ? '满减' : '直减' }}</template>
+                        </el-table-column>
+                        <el-table-column prop="total" sortable label="面额(元)" width="110" align="center"></el-table-column>
+                        <el-table-column v-if="couponMode==='tpl'" prop="fulluse" sortable label="满减门槛" width="110" align="center"></el-table-column>
+                        <el-table-column v-if="couponMode==='tpl'" prop="kucun" sortable label="剩余库存" width="110" align="center"></el-table-column>
+                        <el-table-column v-if="couponMode==='tpl'" prop="extimestr" label="有效期" min-width="120" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column v-if="couponMode==='tpl'" prop="deletestate" label="上架" width="90" align="center"></el-table-column>
+                        <el-table-column prop="note" label="备注" min-width="120" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="ndate" sortable label="日期" width="170" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column fixed="right" label="操作" width="200" align="center">
+                            <template #default="scope">
+                                <el-button v-if="couponMode==='tpl'" link type="primary" size="small" @click="showEdit(scope.row)">查看编辑</el-button>
+                                <el-button v-if="couponMode==='tpl'" link type="danger" size="small" @click="del(scope.row.id)">删除</el-button>
+                                <el-button v-if="couponMode==='user'" link type="primary" size="small" @click="showEdit(scope.row)">查看</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <div class="paginationctn">
+                    <el-pagination v-model:current-page="page.current" v-model:page-size="page.limit" :page-sizes="[100, 200, 300, 400]" layout="total, sizes, prev, pager, next, jumper" :total="page.total" @size-change="refreshData" @current-change="refreshData"></el-pagination>
+                </div>
+            </div>
+            <div class="formdialog" v-show="showe">
+                <div class="formdialogtitle">查看编辑<span class="formdialogtitlegb" @click="showe=false"></span></div>
+                <el-form ref="fobjform1" :model="fobj" label-width="auto">
+                    <el-form-item label="金额" prop="total" :rules="formRules">
+                        <el-input type="number" v-model="fobj.total"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="备注">
+                        <el-input type="textarea" v-model="fobj.note"></el-input>
+                    </el-form-item>
+                    <el-form-item style="text-align: center;margin-top: 50px;">
+                        <el-button type="success" @click="submit1">提交</el-button>
+                        <el-button type="danger" @click="cancel">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+
+        </el-main>
+        <el-footer></el-footer>
+    </el-container>
+</div>
+
+</body>
+<script>
+    const App = {
+        data() {
+            return {
+                formRules:[{required: true, message: '请检查输入...', trigger: 'blur'}],
+                fileurl:fileurl,
+                uploadUrl:uploadUrl,
+                luser:{},
+                tbname:'youhuiquan',
+                showe:false,
+                sobj:{},
+                fobj:{},
+                page:{ current: 1, limit: 10, total: 100 },
+                selectedKeys:[],
+                loading:false,
+
+                dataSource:[],
+                wbCouponScope: null,
+                couponMode: 'tpl'
+            };
+        },
+        mounted() {
+            this.luser = userinfo
+            this.applyWorkbenchScope()
+            this.refreshData()
+        },
+        methods: {
+            handleSelectionChange(rows) {
+                this.selectedKeys = (rows || []).map(function (r) { return r.id })
+            },
+            handleSortChange(obj) {
+                if (!obj || !obj.prop) {
+                    delete this.sobj.sort
+                    delete this.sobj.order
+                } else {
+                    this.sobj.sort = obj.prop
+                    this.sobj.order = obj.order === 'ascending' ? 'asc' : (obj.order === 'descending' ? 'desc' : null)
+                }
+                this.refreshData()
+            },
+            batchDel() {
+                if (!this.selectedKeys || !this.selectedKeys.length) {
+                    ElementPlus.ElMessage.warning('请先勾选要删除的行')
+                    return
+                }
+                var self = this
+                ElementPlus.ElMessageBox.confirm('确认批量删除选中的 ' + this.selectedKeys.length + ' 条吗？', '提示', {
+                    confirmButtonText: '确认',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(function () {
+                    CrudEnhance.batchDelete(self.tbname, self.selectedKeys, function () {
+                        self.selectedKeys = []
+                        self.refreshData()
+                        ElementPlus.ElMessage.success('批量删除完成')
+                    })
+                }).catch(function () {})
+            },
+            exportCurrent() {
+                var name = this.couponMode === 'user' ? '用户优惠券_' : '优惠券模板_'
+                CrudEnhance.exportCsv(name + getNowDate() + '.csv', this.dataSource)
+            },
+            onCouponModeChange(){
+                this.page.current = 1
+                this.refreshData()
+            },
+            applyWorkbenchScope() {
+                try {
+                    const sp = new URLSearchParams(window.location.search || '')
+                    if (sp.get('scope') === 'last30d') {
+                        this.wbCouponScope = 'last30d'
+                        this.couponMode = 'user'
+                    }
+                } catch (e) {}
+            },
+            toReset(){
+                this.sobj = {}
+                this.wbCouponScope = null
+                this.couponMode = 'tpl'
+                this.selectedKeys = []
+                this.refreshData()
+            },
+            refreshData(){
+                if (this.wbCouponScope === 'last30d') {
+                    this.loading = true
+                    const d = new Date()
+                    d.setDate(d.getDate() - 30)
+                    const y = d.getFullYear()
+                    const m = d.getMonth() + 1
+                    const day = d.getDate()
+                    const ds = y + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day
+                    var sidSql = ''
+                    try {
+                        if (this.luser && String(this.luser.roletype) === '3' && this.luser.sid) {
+                            sidSql = " and sid='" + String(this.luser.sid).replace(/'/g, "''") + "'"
+                        }
+                    } catch (e) {}
+                    const sql = "select * from fs_youhuiquan where typeid=2 and ndate is not null and left(trim(ndate),10) >= '" + ds + "'" + sidSql
+                    const self = this
+                    ajaxCallback1('listPageSql', {
+                        sql: sql,
+                        page: this.page.current,
+                        limit: this.page.limit,
+                        sort: this.sobj.sort || 'id',
+                        order: this.sobj.order || 'desc'
+                    }, (r) => {
+                        self.loading = false
+                        self.dataSource = (r && r.rows) ? r.rows : []
+                        self.page.total = (r && r.total) ? r.total : 0
+                    })
+                    return
+                }
+                let s = this.sobj
+                s.type = 1
+                s.table = this.tbname
+                s.page = this.page.current
+                s.limit = this.page.limit
+                s.typeid = this.couponMode === 'user' ? 2 : 1
+                try {
+                    if (this.luser && String(this.luser.roletype) === '3' && this.luser.sid) {
+                        s.sid = this.luser.sid
+                    } else {
+                        delete s.sid
+                    }
+                } catch (e) {}
+                this.loading = true
+                ajaxCallback1('listPage',s,(r)=>{
+                    this.loading = false
+                    this.dataSource = r.rows
+                    this.page.total = r.total
+                })
+            },
+            showEdit(row){
+                this.showe = true
+                if(row){
+                    this.fobj = Object.assign({}, row)
+                }else{
+                    this.fobj = {}
+                }
+
+            },
+            submit1(){
+                this.$refs.fobjform1.validate((isValidate, model, errors) => {
+                    if(isValidate){
+                        this.save()
+                    }
+                })
+            },
+            save(){
+                if (this.couponMode === 'user') {
+                    this.fobj.table = this.tbname
+                    this.fobj.typeid = 2
+                    ajaxCallback("save",this.fobj,(rid) => {
+                        this.showe = false
+                        this.refreshData()
+                    })
+                    return
+                }
+                this.fobj.table = this.tbname;this.fobj.ndate = null
+                this.fobj.typeid = 1
+                try {
+                    if (this.luser && String(this.luser.roletype) === '3' && this.luser.sid) {
+                        this.fobj.sid = this.luser.sid
+                    }
+                } catch (e) {}
+                /*this.fobj.note = editor.txt.html();
+                ajaxFormUploadFile((rimg)=>{
+                    this.fobj.img = rimg*/
+                    ajaxCallback("save",this.fobj,(rid) => {
+                        console.log(rid)
+                        this.showe = false
+                        this.refreshData()
+                    });
+                //})
+
+            },
+            cancel(){
+                this.showe = false
+            },
+            del(id){
+                ElementPlus.ElMessageBox.alert('确认删除吗?', '提示!', {
+                    confirmButtonText: '确认',
+                    callback: (action) => {
+                        ajaxCallback1("delete",{table: this.tbname, id: id},(r) => {
+                            this.refreshData()
+                        });
+                    }
+                })
+            }
+        },
+    };
+    const app = Vue.createApp(App);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+    app.use(ElementPlus,{
+        locale: ElementPlusLocaleZhCn,
+    });
+    app.mount("#app");
+</script>
+</html>

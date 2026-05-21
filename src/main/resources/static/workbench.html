@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>工作台</title>
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/lib/layui-v2.5.5/css/layui.css" media="all">
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/css/layuimini.css?v=2.0.4.2" media="all">
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <style>
+        body { background: #f5f6fa; }
+        .wb-wrap { padding: 16px; }
+        .wb-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 8px 0 14px;
+            color: #111827;
+        }
+        .wb-sub { color: #6b7280; font-size: 12px; margin-bottom: 12px; }
+        .wb-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: 0 8px 26px rgba(15, 23, 42, 0.06);
+            height: 98px;
+        }
+        .wb-card .wb-k { color: #6b7280; font-size: 12px; }
+        .wb-card .wb-v { font-size: 28px; font-weight: 800; margin-top: 8px; color: #111827; }
+        .wb-card .wb-ico { float: right; font-size: 20px; color: #ff8a00; opacity: 0.9; }
+        .wb-actions { margin-top: 14px; }
+        .wb-actions .layui-btn { border-radius: 999px; }
+        .wb-actions .layui-btn-primary { border-color: #ffcf9b; }
+        .wb-actions .layui-btn-primary:hover { border-color: #ff8a00; color: #ff6a00; }
+        .wb-panel {
+            margin-top: 14px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 12px 14px;
+            box-shadow: 0 8px 26px rgba(15, 23, 42, 0.05);
+        }
+        .wb-panel-hd{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .wb-panel-hd-left{ min-width: 0; flex: 1; }
+        .wb-batch-warn-entry{
+            font-size: 12px; font-weight: 600; color: #d97706; cursor: pointer; white-space: nowrap;
+            flex-shrink: 0; padding: 6px 12px; border: 1px solid rgba(217, 119, 6, 0.4); border-radius: 999px;
+            background: rgba(255, 247, 237, 0.9);
+        }
+        .wb-batch-warn-entry:hover{ background: rgba(255, 237, 213, 0.95); border-color: #d97706; }
+        .wb-batch-warn-entry.wb-batch-warn-disabled{
+            opacity: 0.42; cursor: not-allowed; pointer-events: none;
+        }
+        .wb-panel-title{
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+        .wb-dot{
+            width:8px;height:8px;border-radius:999px;
+            background: linear-gradient(135deg, #ffb347, #ff6a00);
+            box-shadow: 0 8px 18px rgba(255, 106, 0, 0.25);
+            display:inline-block;
+        }
+        .wb-panel-sub{ font-size:12px; color:#9ca3af; }
+        .wb-list{ margin:0; padding:0; list-style:none; }
+        .wb-item{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding: 10px 6px;
+            border-top: 1px solid #f3f4f6;
+            gap: 10px;
+        }
+        .wb-item:first-child{ border-top: 0; }
+        .wb-item-left{ min-width: 0; flex: 1; }
+        .wb-item-title{ font-size: 13px; color:#374151; font-weight: 600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .wb-item-desc{ font-size: 12px; color:#9ca3af; margin-top: 2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .wb-badge{
+            display:inline-flex; align-items:center; justify-content:center;
+            height: 20px; padding: 0 8px; border-radius: 999px;
+            font-size: 12px; font-weight: 700;
+            color:#ff6a00; background: rgba(255, 106, 0, 0.10);
+            border: 1px solid rgba(255, 106, 0, 0.22);
+            white-space: nowrap;
+        }
+        .wb-badge.wb-badge-danger{ color:#ef4444; background: rgba(239, 68, 68, 0.10); border-color: rgba(239, 68, 68, 0.22); }
+        .wb-badge.wb-badge-ok{ color:#10b981; background: rgba(16, 185, 129, 0.10); border-color: rgba(16, 185, 129, 0.22); }
+        .wb-link{ font-size: 12px; color:#2563eb; cursor:pointer; white-space:nowrap; }
+        .wb-link:hover{ color:#1d4ed8; text-decoration: underline; }
+        /* 工作台内嵌整改预警（与商家页同接口，不依赖 Element / iframe 内页） */
+        .wb-warn-mask{
+            display:none; position:fixed; inset:0; z-index:19891015;
+            background:rgba(0,0,0,.45); align-items:center; justify-content:center;
+            padding:16px; box-sizing:border-box;
+        }
+        .wb-warn-mask.wb-warn-mask-on{ display:flex; }
+        .wb-warn-dialog{
+            position:relative; width:100%; max-width:520px; max-height:min(92vh,640px);
+            background:#fff; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.18);
+            display:flex; flex-direction:column; overflow:hidden;
+        }
+        .wb-warn-dialog-hd{ font-size:16px; font-weight:700; padding:16px 44px 8px 20px; color:#303133; }
+        .wb-warn-x{
+            position:absolute; right:12px; top:10px; width:32px; height:32px; border:0; background:transparent;
+            font-size:22px; line-height:1; color:#909399; cursor:pointer; border-radius:6px;
+        }
+        .wb-warn-x:hover{ background:#f5f7fa; color:#606266; }
+        .wb-warn-dialog-bd{ padding:0 20px 12px; flex:1; min-height:0; overflow-y:auto; }
+        .wb-warn-meta{ font-size:13px; color:#606266; line-height:1.65; margin-bottom:12px; }
+        .wb-warn-meta .wb-warn-hint{ margin-top:8px; font-size:12px; color:#909399; }
+        .wb-warn-ta{
+            width:100%; box-sizing:border-box; min-height:120px; padding:10px 12px;
+            border:1px solid #dcdfe6; border-radius:6px; font-size:14px; resize:vertical;
+        }
+        .wb-warn-count{ text-align:right; font-size:12px; color:#909399; margin-top:4px; }
+        .wb-warn-progress{ display:none; margin-top:10px; padding:8px 10px; font-size:12px; color:#606266; background:#f5f7fa; border-radius:6px; }
+        .wb-warn-progress.wb-warn-progress-on{ display:block; }
+        .wb-warn-dialog-ft{
+            flex-shrink:0; display:flex; justify-content:flex-end; gap:10px;
+            padding:14px 20px 16px; border-top:1px solid #ebeef5; background:#fff;
+        }
+        .wb-warn-btn{
+            padding:8px 20px; font-size:14px; border-radius:4px; border:1px solid #dcdfe6;
+            background:#fff; cursor:pointer;
+        }
+        .wb-warn-btn-go{ background:#e6a23c; border-color:#e6a23c; color:#fff; }
+        .wb-warn-btn-go:hover{ filter:brightness(1.05); }
+        .wb-grid-2{ display:flex; gap: 14px; }
+        .wb-grid-2 > .wb-panel{ flex: 1; }
+        .wb-kpi-click{ cursor:pointer; }
+        .wb-kpi-click:hover{ border-color: rgba(255, 106, 0, 0.45); box-shadow: 0 12px 30px rgba(255, 106, 0, 0.10); }
+        @media (max-width: 1100px){
+            .wb-grid-2{ flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="wb-wrap">
+    <div class="wb-title">工作台</div>
+
+    <div class="layui-row layui-col-space12">
+        <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+            <div class="wb-card wb-kpi-click" onclick="openInParent('shopreplaymap-el.html','商家管理','fa fa-building','scope=pending_audit')">
+                <i class="wb-ico fa fa-cubes"></i>
+                <div class="wb-k">待审核店铺</div>
+                <div class="wb-v" id="wb_shop_audit_pending">-</div>
+            </div>
+        </div>
+        <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+            <div class="wb-card wb-kpi-click" onclick="openInParent('replay-appeal-el.html','评价申诉管理','fa fa-exclamation-circle','scope=pending')">
+                <i class="wb-ico fa fa-tags"></i>
+                <div class="wb-k">待处理申诉</div>
+                <div class="wb-v" id="wb_appeal_pending">-</div>
+            </div>
+        </div>
+        <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+            <div class="wb-card wb-kpi-click" onclick="openInParent('shopreplaymap-el.html','商家管理','fa fa-building','scope=low_pf')">
+                <i class="wb-ico fa fa-building"></i>
+                <div class="wb-k">低评分预警店铺</div>
+                <div class="wb-v" id="wb_low_score_shop_cnt">-</div>
+            </div>
+        </div>
+        <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+            <div class="wb-card wb-kpi-click" onclick="openInParent('bill-el.html','订单管理','fa fa-list','scope=pending_pay')">
+                <i class="wb-ico fa fa-clock-o"></i>
+                <div class="wb-k">待付款订单</div>
+                <div class="wb-v" id="wb_bill_pending">-</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row layui-col-space12" style="margin-top: 4px;">
+        <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+            <div class="wb-card wb-kpi-click" onclick="openInParent('youhuiquan-el.html','活动策划','fa fa-file-text','scope=last30d')">
+                <i class="wb-ico fa fa-ticket"></i>
+                <div class="wb-k">近30天用户领券</div>
+                <div class="wb-v" id="wb_coupon_claim_30d">-</div>
+            </div>
+        </div>
+        <div class="layui-col-xs12 layui-col-sm6 layui-col-md3">
+            <div class="wb-card wb-kpi-click" onclick="openInParent('youhuiquan-el.html','活动策划','fa fa-file-text')">
+                <i class="wb-ico fa fa-file-text"></i>
+                <div class="wb-k">近30天新建券模板</div>
+                <div class="wb-v" id="wb_coupon_tpl_30d">-</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="wb-actions">
+        <a class="layui-btn layui-btn-normal" href="javascript:;" onclick="openInParent('workbench.html','工作台','fa fa-dashboard')">
+            <i class="fa fa-dashboard"></i> 刷新视图
+        </a>
+        <a class="layui-btn layui-btn-primary" href="javascript:;" onclick="openInParent('shopreplaymap-el.html','商家管理','fa fa-building','scope=pending_audit')">
+            <i class="fa fa-building"></i> 商家审核
+        </a>
+        <a class="layui-btn layui-btn-primary" href="javascript:;" onclick="openInParent('replay-appeal-el.html','评价申诉管理','fa fa-exclamation-circle','scope=pending')">
+            <i class="fa fa-exclamation-circle"></i> 申诉处理
+        </a>
+        <a class="layui-btn layui-btn-primary" href="javascript:;" onclick="openInParent('sysmsg-el.html','公告/交流反馈','fa fa-bullhorn')">
+            <i class="fa fa-bullhorn"></i> 公告/反馈
+        </a>
+        <a class="layui-btn layui-btn-primary" href="javascript:;" onclick="openInParent('goodreplay-el.html','商品管理','fa fa-gears')">
+            <i class="fa fa-cubes"></i> 商品管理
+        </a>
+        <a class="layui-btn layui-btn-primary" href="javascript:;" onclick="openInParent('typesub-el.html','分类管理','fa fa-tags')">
+            <i class="fa fa-tags"></i> 分类管理
+        </a>
+        <a class="layui-btn layui-btn-primary" href="javascript:;" onclick="openInParent('bill-el.html','订单管理','fa fa-list')">
+            <i class="fa fa-list"></i> 订单管理
+        </a>
+        <a class="layui-btn layui-btn-primary" href="javascript:;" onclick="openInParent('dashbord.html','数据分析','fa fa-file-text')">
+            <i class="fa fa-line-chart"></i> 数据分析
+        </a>
+        <a class="layui-btn layui-btn-primary" href="javascript:;" onclick="refreshWorkbench()">
+            <i class="fa fa-refresh"></i> 刷新数据
+        </a>
+    </div>
+
+    <div class="wb-grid-2">
+        <div class="wb-panel">
+            <div class="wb-panel-hd">
+                <div class="wb-panel-hd-left">
+                    <div class="wb-panel-title"><span class="wb-dot"></span>待办中心</div>
+                    <div class="wb-panel-sub">SLA 优先，点击进入处理</div>
+                </div>
+            </div>
+            <ul class="wb-list" id="wb_todo_list"></ul>
+        </div>
+        <div class="wb-panel">
+            <div class="wb-panel-hd">
+                <div class="wb-panel-hd-left">
+                    <div class="wb-panel-title"><span class="wb-dot"></span>风险与预警</div>
+                    <div class="wb-panel-sub">低评分 / 待审核 / 异常趋势</div>
+                </div>
+                <span id="wb_batch_warn_entry" class="wb-batch-warn-entry wb-batch-warn-disabled" title="刷新数据后可用" onclick="openWorkbenchWarnBatch()">全部低分一键发预警</span>
+            </div>
+            <ul class="wb-list" id="wb_alert_list"></ul>
+        </div>
+    </div>
+
+    <div class="wb-grid-2">
+        <div class="wb-panel">
+            <div class="wb-panel-hd">
+                <div class="wb-panel-hd-left">
+                    <div class="wb-panel-title"><span class="wb-dot"></span>公告与运营资讯</div>
+                </div>
+            </div>
+            <ul class="wb-list" id="wb_notice_list"></ul>
+        </div>
+        <div class="wb-panel">
+            <div class="wb-panel-hd">
+                <div class="wb-panel-hd-left">
+                    <div class="wb-panel-title"><span class="wb-dot"></span>我的工作</div>
+                    <div class="wb-panel-sub" id="wb_my_hint">按角色聚合我的待办</div>
+                </div>
+            </div>
+            <ul class="wb-list" id="wb_my_list"></ul>
+        </div>
+    </div>
+
+    <div id="wb_warn_mask" class="wb-warn-mask" onclick="closeWorkbenchWarn()">
+        <div class="wb-warn-dialog" onclick="event.stopPropagation()">
+            <button type="button" class="wb-warn-x" onclick="closeWorkbenchWarn()" aria-label="关闭">&times;</button>
+            <div id="wb_warn_dialog_hd" class="wb-warn-dialog-hd">向全部低分店铺发送整改预警</div>
+            <div class="wb-warn-dialog-bd">
+                <div id="wb_warn_meta" class="wb-warn-meta"></div>
+                <textarea id="wb_warn_note" class="wb-warn-ta" maxlength="2000" placeholder="请填写整改要求与说明（将推送给每家店铺，内容相同）"></textarea>
+                <div class="wb-warn-count"><span id="wb_warn_cnt">0</span> / 2000</div>
+                <div id="wb_warn_progress" class="wb-warn-progress"></div>
+            </div>
+            <div class="wb-warn-dialog-ft">
+                <button type="button" class="wb-warn-btn" id="wb_warn_btn_cancel" onclick="closeWorkbenchWarn()">取 消</button>
+                <button type="button" class="wb-warn-btn wb-warn-btn-go" id="wb_warn_btn_submit" onclick="submitWorkbenchWarn()">发送预警</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /** 第四项 query 为查询串（如 scope=pending_audit），不带 ?；从左侧菜单打开请勿传此项，列表为全量 */
+    function openInParent(href, title, icon, query){
+        if (query && typeof query === 'string' && query.length) {
+            href += (href.indexOf('?') >= 0 ? '&' : '?') + query.replace(/^\?/, '');
+        }
+        try {
+            if (window.parent && window.parent.layui && window.parent.layui.miniTab && window.parent.layui.miniTab.openNewTabByIframe) {
+                window.parent.layui.miniTab.openNewTabByIframe({
+                    href: href,
+                    title: title || '页面',
+                    icon: icon || 'fa fa-file-text',
+                });
+                return;
+            }
+        } catch (e) {}
+        window.location.href = href;
+    }
+
+    function safeNum(n){
+        if(n === null || typeof n === "undefined" || n === ""){
+            return null;
+        }
+        var v = parseFloat(n);
+        if(isNaN(v)) return null;
+        return v;
+    }
+
+    function escAttr(s){
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;');
+    }
+
+    /** 当前页「刷新数据」拉取到的全部低分店铺（pf 数值 < 4），用于批量发预警，与列表仅展示前 5 条无关 */
+    var wbLowScoreBatchList = [];
+
+    function wbWarnDefaultNote(){
+        return '您店铺当前评分偏低，请重点关注用户评价中反馈的出餐速度、环境卫生与服务态度，及时整改提升口碑。如有异议可通过平台客服说明。';
+    }
+
+    function formatNdateWorkbench(){
+        var d = new Date();
+        function p(n){ return (n < 10 ? '0' : '') + n; }
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+
+    function setBatchWarnEntryEnabled(yes){
+        var $e = $('#wb_batch_warn_entry');
+        if (yes) $e.removeClass('wb-batch-warn-disabled').attr('title', '对当前列表中的全部低分店铺发送同一条系统消息');
+        else $e.addClass('wb-batch-warn-disabled').attr('title', '暂无评分低于 4 的店铺');
+    }
+
+    function openWorkbenchWarnBatch(){
+        var shops = wbLowScoreBatchList || [];
+        if (!shops.length) {
+            alert('当前没有评分低于 4 的店铺，请先点击「刷新数据」');
+            return;
+        }
+        var n = shops.length;
+        var preview = [];
+        for (var i = 0; i < Math.min(12, n); i++) {
+            var s = shops[i];
+            preview.push(escAttr(s.sname || ('#' + s.id)));
+        }
+        var previewLine = preview.length ? ('<div style="margin-top:8px;font-size:12px;color:#606266;line-height:1.5;">示例：' + preview.join('、') + (n > 12 ? ' 等…' : '') + '</div>') : '';
+        $('#wb_warn_dialog_hd').text('向全部低分店铺发送整改预警');
+        $('#wb_warn_meta').html(
+            '<div><b>目标：</b>共 <b>' + n + '</b> 家店铺（评分均低于 4），将使用下方<strong>同一条正文</strong>逐店写入系统消息。</div>'
+            + previewLine
+            + '<div class="wb-warn-hint">店铺较多时会逐条请求后台发送，请勿关闭本页；发送期间按钮会暂时禁用。</div>'
+        );
+        $('#wb_warn_note').val(wbWarnDefaultNote());
+        wbUpdateWarnCount();
+        $('#wb_warn_progress').removeClass('wb-warn-progress-on').text('');
+        $('#wb_warn_btn_cancel, #wb_warn_btn_submit').prop('disabled', false);
+        $('#wb_warn_btn_submit').text('发送预警（' + n + ' 家）');
+        $('#wb_warn_mask').addClass('wb-warn-mask-on');
+    }
+
+    function closeWorkbenchWarn(){
+        $('#wb_warn_mask').removeClass('wb-warn-mask-on');
+        $('#wb_warn_progress').removeClass('wb-warn-progress-on').text('');
+        $('#wb_warn_btn_cancel, #wb_warn_btn_submit').prop('disabled', false);
+        $('#wb_warn_btn_submit').text('发送预警');
+    }
+
+    function wbUpdateWarnCount(){
+        var n = ($('#wb_warn_note').val() || '').length;
+        $('#wb_warn_cnt').text(n);
+    }
+
+    function submitWorkbenchWarn(){
+        var shops = wbLowScoreBatchList || [];
+        if (!shops.length) {
+            alert('当前没有可发送的低分店铺');
+            return;
+        }
+        var text = ($('#wb_warn_note').val() || '').trim();
+        if (!text) {
+            alert('请填写提醒内容');
+            return;
+        }
+        if (!window.confirm('确认向 ' + shops.length + ' 家低分店铺发送同一条整改预警？')) {
+            return;
+        }
+        var idx = 0;
+        var ok = 0;
+        var fail = 0;
+        var total = shops.length;
+        $('#wb_warn_progress').addClass('wb-warn-progress-on').text('发送中 0 / ' + total);
+        $('#wb_warn_btn_cancel, #wb_warn_btn_submit').prop('disabled', true);
+
+        function sendNext(){
+            if (idx >= total) {
+                $('#wb_warn_btn_cancel, #wb_warn_btn_submit').prop('disabled', false);
+                $('#wb_warn_progress').removeClass('wb-warn-progress-on');
+                alert('发送结束：成功 ' + ok + ' 家，失败 ' + fail + ' 家。商家可在小程序「消息通知 → 系统」查看。');
+                closeWorkbenchWarn();
+                return;
+            }
+            var s = shops[idx];
+            var sid = parseInt(s.id, 10);
+            var sname = (s.sname != null && s.sname !== '') ? s.sname : '';
+            var pf = (s.__pf != null && s.__pf !== '') ? s.__pf : '';
+            var head = '【平台整改提醒】店铺：' + sname + ' | 当前评分：' + (pf !== '' ? pf : '—') + '\n\n';
+            var note = head + text;
+            if (note.length > 8000) note = note.slice(0, 7997) + '...';
+            var payload = {
+                table: 'sysmsg',
+                title: '评分整改提醒',
+                note: note,
+                ndate: formatNdateWorkbench(),
+                type: 'system',
+                sid: sid,
+                shop: sname,
+                state: 1,
+                biztype: 'admin_low_pf_warn'
+            };
+            var done = idx + 1;
+            idx++;
+            $('#wb_warn_progress').text('发送中 ' + done + ' / ' + total);
+            ajaxSavePost(payload, function(res){
+                if (res) ok++;
+                else fail++;
+                sendNext();
+            }, true);
+        }
+        sendNext();
+    }
+
+    $(document).on('input', '#wb_warn_note', wbUpdateWarnCount);
+
+    function setText(elId, v, emptyText){
+        emptyText = emptyText || '-';
+        if(v === null || typeof v === "undefined" || v === ""){
+            $('#'+elId).text(emptyText);
+        }else{
+            $('#'+elId).text(v);
+        }
+    }
+
+    function renderList(elId, items, emptyText){
+        var $el = $('#'+elId);
+        if(!items || !items.length){
+            $el.html('<li class="wb-item"><div class="wb-item-left"><div class="wb-item-title">'+(emptyText || '暂无数据')+'</div></div></li>');
+            return;
+        }
+        var html = '';
+        for(var i=0;i<items.length;i++){
+            var it = items[i];
+            html += '<li class="wb-item">'
+                + '<div class="wb-item-left">'
+                + '<div class="wb-item-title">'+(it.title || '-')+'</div>'
+                + (it.desc ? ('<div class="wb-item-desc">'+it.desc+'</div>') : '')
+                + '</div>'
+                + '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">'
+                + (it.badgeHtml || '')
+                + (it.linkText ? ('<span class="wb-link" onclick="'+it.onClick+'">'+it.linkText+'</span>') : '')
+                + '</div>'
+                + '</li>';
+        }
+        $el.html(html);
+    }
+
+    function badgeHtml(text, type){
+        var cls = 'wb-badge';
+        if(type === 'danger') cls += ' wb-badge-danger';
+        if(type === 'ok') cls += ' wb-badge-ok';
+        return '<span class="'+cls+'">'+text+'</span>';
+    }
+
+    function inLastDays(dateStr, days){
+        if(!dateStr) return false;
+        var ds = (dateStr+'').substr(0, 10);
+        var t = new Date(ds.replace(/-/g,'/')).getTime();
+        if(isNaN(t)) return false;
+        return (Date.now() - t) <= (days * 86400000);
+    }
+
+    function refreshWorkbench(){
+        $.ajax({
+            type: 'GET',
+            url: clientUrl + 'opsWorkbenchSummaryJ',
+            dataType: 'jsonp',
+            jsonp: 'callback',
+            timeout: 60000,
+            success: function(res){
+                if (!res || !res.ok || !res.summary) {
+                    var err = (res && res.error) ? String(res.error) : '服务端未返回 summary';
+                    alert('工作台数据加载失败：' + err);
+                    return;
+                }
+                var s = res.summary;
+                var pend = s.billPendingPay != null ? s.billPendingPay : 0;
+                var appealPend = s.appealsPending != null ? s.appealsPending : 0;
+                var shopAudit = s.shopPendingAudit != null ? s.shopPendingAudit : 0;
+
+                setText('wb_bill_pending', pend);
+                setText('wb_shop_audit_pending', shopAudit);
+                setText('wb_low_score_shop_cnt', s.shopLowPfCount != null ? s.shopLowPfCount : 0);
+                setText('wb_appeal_pending', appealPend);
+                setText('wb_coupon_claim_30d', s.couponClaim30d != null ? s.couponClaim30d : 0);
+                setText('wb_coupon_tpl_30d', s.couponTpl30d != null ? s.couponTpl30d : 0);
+
+                var lowRows = s.lowPfShops || [];
+                wbLowScoreBatchList = lowRows.map(function(row){
+                    var pfv = safeNum(row.pf);
+                    return { id: row.id, sname: (row.sname || row.shop || ''), __pf: pfv };
+                }).filter(function(x){ return x.__pf !== null && x.__pf < 4; });
+                setBatchWarnEntryEnabled(wbLowScoreBatchList.length > 0);
+
+                var alertItems = [];
+                lowRows.slice(0, 5).forEach(function(row){
+                    var pfv = safeNum(row.pf);
+                    if (pfv === null || pfv >= 4) return;
+                    var sidQ = (row.id != null) ? ('sid=' + encodeURIComponent(row.id) + '&scope=low_pf') : 'scope=low_pf';
+                    alertItems.push({
+                        title: '低评分店铺：' + (row.sname || ('#' + row.id)),
+                        desc: '评分 ' + pfv + '，建议关注差评与投诉并下发整改',
+                        badgeHtml: badgeHtml('评分<' + 4, 'danger'),
+                        linkText: '去处理',
+                        onClick: "openInParent('shopreplaymap-el.html','商家管理','fa fa-building','" + sidQ + "')"
+                    });
+                });
+                var pendPrev = s.pendingAuditPreview || [];
+                pendPrev.forEach(function(row){
+                    var sidQ = (row.id != null) ? ('sid=' + encodeURIComponent(row.id) + '&scope=pending_audit') : 'scope=pending_audit';
+                    alertItems.push({
+                        title: '待审核店铺：' + (row.sname || ('#' + row.id)),
+                        desc: '请尽快审核，避免影响入驻转化',
+                        badgeHtml: badgeHtml('待审核', 'danger'),
+                        linkText: '去审核',
+                        onClick: "openInParent('shopreplaymap-el.html','商家管理','fa fa-building','" + sidQ + "')"
+                    });
+                });
+                renderList('wb_alert_list', alertItems, '暂无风险预警');
+
+                var todoItems = [];
+                todoItems.push({
+                    title: '待审核店铺',
+                    desc: '需要审核的店铺入驻申请',
+                    badgeHtml: badgeHtml('待审核 ' + shopAudit),
+                    linkText: '进入',
+                    onClick: "openInParent('shopreplaymap-el.html','商家管理','fa fa-building','scope=pending_audit')"
+                });
+                todoItems.push({
+                    title: '待处理申诉',
+                    desc: '评价申诉待处理，建议优先处理超时风险',
+                    badgeHtml: badgeHtml('待处理 ' + appealPend),
+                    linkText: '处理',
+                    onClick: "openInParent('replay-appeal-el.html','评价申诉管理','fa fa-exclamation-circle','scope=pending')"
+                });
+                todoItems.push({
+                    title: '活动策划 / 优惠券',
+                    desc: '创建并发布活动，提高转化与复购',
+                    badgeHtml: badgeHtml('运营'),
+                    linkText: '创建',
+                    onClick: "openInParent('youhuiquan-el.html','活动策划','fa fa-file-text')"
+                });
+                todoItems.push({
+                    title: '交流反馈 / 公告',
+                    desc: '查看反馈并发布公告，提升运营效率',
+                    badgeHtml: badgeHtml('信息触达'),
+                    linkText: '查看',
+                    onClick: "openInParent('sysmsg-el.html','公告/交流反馈','fa fa-bullhorn')"
+                });
+                if (pend > 0) {
+                    todoItems.unshift({
+                        title: '待付款订单（对账）',
+                        desc: '用户已下单未支付，可联系用户或必要时后台标记已付款',
+                        badgeHtml: badgeHtml('待付款 ' + pend, 'danger'),
+                        linkText: '去处理',
+                        onClick: "openInParent('bill-el.html','订单管理','fa fa-list','scope=pending_pay')"
+                    });
+                }
+                renderList('wb_todo_list', todoItems);
+
+                var rows = s.latestSysmsg || [];
+                var items = rows.slice(0, 6).map(function(n){
+                    var t = n.title || '公告';
+                    var d = (n.ndate || '') ? (n.ndate + '') : '';
+                    var sh = n.shop ? (' · ' + n.shop) : '';
+                    return {
+                        title: t,
+                        desc: (d ? (d + sh) : (sh ? sh.substr(3) : '')),
+                        badgeHtml: badgeHtml((n.type || '资讯') + ''),
+                        linkText: '查看',
+                        onClick: "openInParent('sysmsg-el.html','公告/交流反馈','fa fa-bullhorn')"
+                    };
+                });
+                renderList('wb_notice_list', items, '暂无公告');
+
+                /* 模块：按当前登录角色推荐入口 */
+                var rt = (userinfo && userinfo.roletype) ? (userinfo.roletype+'') : '';
+                var myItems = [];
+                if(rt === '6'){
+                    $('#wb_my_hint').text('审核视角：优先处理待审核与申诉');
+                    myItems = [
+                        { title:'店铺审核', desc:'处理待审核店铺与驳回原因', badgeHtml: badgeHtml('审核'), linkText:'进入', onClick:"openInParent('shopreplaymap-el.html','商家管理','fa fa-building','scope=pending_audit')" },
+                        { title:'申诉处理', desc:'处理评价申诉与系统消息通知', badgeHtml: badgeHtml('待办'), linkText:'进入', onClick:"openInParent('replay-appeal-el.html','评价申诉管理','fa fa-exclamation-circle','scope=pending')" },
+                        { title:'敏感词管理', desc:'维护敏感词，降低违规风险', badgeHtml: badgeHtml('合规'), linkText:'进入', onClick:"openInParent('mgc-vue.html','敏感词管理','fa fa-ban')" },
+                    ];
+                }else if(rt === '5'){
+                    $('#wb_my_hint').text('运营视角：看信号 + 快速动作 + 去分析页归因');
+                    myItems = [
+                        { title:'订单与对账', desc:'待付款、优惠券抵扣、堂食外带字段', badgeHtml: badgeHtml('交易'), linkText:'进入', onClick:"openInParent('bill-el.html','订单管理','fa fa-list')" },
+                        { title:'活动策划', desc:'创建优惠券/活动，拉新促活', badgeHtml: badgeHtml('运营'), linkText:'进入', onClick:"openInParent('youhuiquan-el.html','活动策划','fa fa-file-text','scope=last30d')" },
+                        { title:'店铺数据', desc:'查看销售榜与交易趋势', badgeHtml: badgeHtml('数据'), linkText:'进入', onClick:"openInParent('dashbord2.html','店铺数据','fa fa-file-text')" },
+                        { title:'数据分析', desc:'经营/商家/口碑/活动多维分析', badgeHtml: badgeHtml('分析'), linkText:'进入', onClick:"openInParent('dashbord.html','数据分析','fa fa-file-text')" },
+                    ];
+                }else{
+                    $('#wb_my_hint').text('平台视角：待办、预警、公告与快捷入口');
+                    myItems = [
+                        { title:'账户管理', desc:'用户与角色管理', badgeHtml: badgeHtml('系统'), linkText:'进入', onClick:"openInParent('user-el.html','账户管理','fa fa-window-maximize')" },
+                        { title:'商家管理', desc:'入驻审核、评分预警', badgeHtml: badgeHtml('重点'), linkText:'进入', onClick:"openInParent('shopreplaymap-el.html','商家管理','fa fa-building')" },
+                        { title:'探店文章管理', desc:'内容审核与运营', badgeHtml: badgeHtml('内容'), linkText:'进入', onClick:"openInParent('blogreplaymap-vue.html','探店文章管理','fa fa-newspaper-o')" },
+                    ];
+                }
+                renderList('wb_my_list', myItems);
+            },
+            error: function(){
+                alert('工作台聚合接口请求失败，请检查网络或服务是否已部署 opsWorkbenchSummaryJ');
+            }
+        });
+    }
+
+    refreshWorkbench();
+</script>
+</body>
+</html>

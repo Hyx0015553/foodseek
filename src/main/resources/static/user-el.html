@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/crud-enhance.js"></script>
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/index.css" />
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/public.css" />
+    <script src="./__PUBLIC__/elementui-vue/vue.global.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/icons-vue.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/element-plus.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/zh-cn.js"></script>
+    <style>
+        /* 列表区铺满 iframe，表格随容器拉伸（勿配合 el-table :fit=false + 全固定 width，否则会右侧留白） */
+        .user-page-wrap .datagridctn {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .user-page-wrap .tablectn {
+            width: 100%;
+            overflow-x: auto;
+        }
+        .user-table-compact.el-table {
+            --el-table-border-color: #ebeef5;
+        }
+        .user-table-compact.el-table .cell {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        .user-table-compact .user-avatar-cell {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            object-fit: cover;
+            vertical-align: middle;
+        }
+        .user-table-ops {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm">
+    <input style="display: none;" id="selectimginput" onchange="showPicImg(this.files);" name="file" type="file"/>
+</form>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm2">
+    <input style="display: none;" id="selectimginput2" onchange="showPicImg2(this.files);" name="file" type="file"/>
+</form>
+<div id="app" class="user-page-wrap">
+    <el-container>
+        <el-header style="height: auto;">
+            <div class="searchctn">
+                <el-form :model="sobj" :inline="true" label-width="auto">
+                    <el-form-item label="用户名">
+                        <el-input v-model="sobj.username" placeholder="模糊匹配用户名"></el-input>
+                    </el-form-item>
+                    <el-form-item label="电话">
+                        <el-input v-model="sobj.tel" placeholder="精确匹配手机号"></el-input>
+                    </el-form-item>
+                    <el-form-item label="身份">
+                        <el-select v-model="sobj.roletype" placeholder="全部身份" clearable style="min-width: 160px">
+                            <el-option label="超级管理员" value="1"></el-option>
+                            <el-option label="运营管理员" value="5"></el-option>
+                            <el-option label="审核管理员" value="6"></el-option>
+                            <el-option label="用户" value="2"></el-option>
+                            <el-option label="商家" value="3"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="refreshData">搜索</el-button>
+                        <el-button type="success" @click="toReset">重置</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+        </el-header>
+        <el-main>
+            <div class="datagridctn">
+                <div class="tablectn">
+                    <div class="tabletoolbarctn">
+                        <el-button type="danger" @click="showEdit(null)">新增</el-button>
+                        <el-button type="warning" :disabled="!selectedKeys.length" @click="batchDel">批量删除</el-button>
+                        <el-button type="primary" :disabled="!dataSource.length" @click="exportCurrent">导出CSV</el-button>
+                    </div>
+
+                    <el-table
+                            class="user-table-compact"
+                            stripe
+                            size="small"
+                            v-loading="loading"
+                            :data="dataSource"
+                            current-row-key="id"
+                            :highlight-current-row="true"
+                            :show-overflow-tooltip="true"
+                            style="width: 100%"
+                            @selection-change="handleSelectionChange"
+                            @sort-change="handleSortChange"
+                            @filter-change="handleFilterChange">
+                        <el-table-column type="selection" width="48" align="center"></el-table-column>
+                        <el-table-column prop="id" sortable label="编号" width="72" align="center"></el-table-column>
+                        <el-table-column label="头像" width="76" align="center">
+                            <template #default="scope">
+                                <img class="user-avatar-cell" :src="fileurl+scope.row.img" alt="">
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="username" sortable label="用户名" min-width="140" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column
+                                prop="rstr"
+                                label="身份"
+                                min-width="120"
+                                align="center"
+                                show-overflow-tooltip
+                                :filters="roleFilters"
+                                :filter-multiple="false"
+                                column-key="roletype">
+                        </el-table-column>
+                        <el-table-column prop="tel" sortable label="电话号码" min-width="130" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="money" sortable label="余额(元)" width="104" align="center">
+                            <template #default="scope">
+                                <span>{{ scope.row.money != null && scope.row.money !== '' ? scope.row.money : 0 }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="sid" label="店铺ID" width="88" align="center">
+                            <template #default="scope">
+                                <span>{{ scope.row.sid || '-' }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="支付密码" width="102" align="center">
+                            <template #default="scope">
+                                <el-tag v-if="scope.row.paypwd" type="success" size="small">已设</el-tag>
+                                <el-tag v-else type="info" size="small">未设</el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column fixed="right" label="操作" min-width="188" align="center">
+                            <template #default="scope">
+                                <span class="user-table-ops">
+                                    <el-button link type="primary" size="small" @click="showEdit(scope.row)">查看编辑</el-button>
+                                    <el-button link type="danger" size="small" @click="del(scope.row.id)">删除</el-button>
+                                </span>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <div class="paginationctn">
+                    <el-pagination v-model:current-page="page.current" v-model:page-size="page.limit" :page-sizes="[100, 200, 300, 400]" layout="total, sizes, prev, pager, next, jumper" :total="page.total" @size-change="refreshData" @current-change="refreshData"></el-pagination>
+                </div>
+            </div>
+            <div class="formdialog" v-show="showe">
+                <div class="formdialogtitle">查看编辑<span class="formdialogtitlegb" @click="showe=false"></span></div>
+                <el-form ref="fobjform1" :model="fobj" label-width="auto">
+                    <el-form-item label="用户名" prop="username" :rules="formRules">
+                        <el-input @blur="checkUser" type="text" v-model="fobj.username"></el-input>
+                    </el-form-item>
+                    <div style="text-align: center;margin-bottom: 20px;">
+                        <div style="width: 150px;margin-left: 35%;">
+                            <div style="text-align: center;">
+                                <div style="text-align: center;" id="imgctn"></div>
+                                <a href="#" onclick="getFileInput(this);">头像</a>
+                            </div>
+                        </div>
+                    </div>
+                    <el-form-item label="电话号码" prop="tel" :rules="rules1">
+                        <el-input type="tel" v-model="fobj.tel"></el-input>
+                    </el-form-item>
+                    <el-form-item label="性别" prop="sex">
+                        <el-select v-model="fobj.sex" class="m-2" placeholder="请选择" size="large" style="width: 240px">
+                            <el-option label="男" value="男" ></el-option>
+                            <el-option label="女" value="女" ></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="密码" prop="passwd" :rules="formRules">
+                        <el-input type="password" v-model="fobj.passwd"></el-input>
+                    </el-form-item>
+                    <el-form-item label="权限" prop="roletype">
+                        <el-select v-model="fobj.roletype" class="m-2" placeholder="请选择" size="large" style="width: 240px">
+                            <el-option label="超级管理员" value="1" ></el-option>
+                            <el-option label="运营管理员" value="5" ></el-option>
+                            <el-option label="审核管理员" value="6" ></el-option>
+                            <el-option label="用户" value="2" ></el-option>
+                            <el-option label="商家" value="3" ></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="所属店铺" prop="sid" v-if="fobj.roletype=='3'">
+                        <el-select v-model="fobj.sid" class="m-2" placeholder="请选择" size="large" style="width: 240px">
+                            <el-option v-for="item in slist" :label="item.label" :value="item.value" ></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="账户余额(元)" prop="money">
+                        <el-input type="number" v-model="fobj.money" placeholder="用户零钱 / 商家店铺钱包汇总"></el-input>
+                    </el-form-item>
+                    <el-form-item label="备注">
+                        <div id="editor" style="width: 480px;height: 400px;">
+
+                        </div>
+                    </el-form-item>
+                    <el-form-item style="text-align: center;margin-top: 50px;">
+                        <el-button type="success" @click="submit1">提交</el-button>
+                        <el-button type="danger" @click="cancel">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+
+        </el-main>
+        <el-footer></el-footer>
+    </el-container>
+</div>
+
+</body>
+<script>
+    const App = {
+        data() {
+            return {
+                formRules:[{required: true, message: '请检查输入...', trigger: 'blur'}],
+                fileurl:fileurl,
+                uploadUrl:uploadUrl,
+                luser:{},
+                dumpuser:false,
+                tbname:'user',
+                showe:false,
+                sobj:{},
+                fobj:{
+                    roletype:2
+                },
+                page:{ current: 1, limit: 10, total: 100 },
+                selectedKeys:[],
+                loading:false,
+                roleFilters:[
+                    { text:'超级管理员', value:'1' },
+                    { text:'运营管理员', value:'5' },
+                    { text:'审核管理员', value:'6' },
+                    { text:'用户', value:'2' },
+                    { text:'商家', value:'3' },
+                ],
+                dataSource:[],
+                slist:[],
+                rules1:[{
+                    validator(rule, value, callback, source, options){
+                        const regex = /^1[3456789]\d{9}$/
+                        if (regex.test(value)) {
+                            return true;
+                        } else {
+                            callback(new Error(`电话号码不正确`))
+                        }
+                    }
+                }]
+            }
+        },
+        mounted() {
+            this.refreshData()
+            ajaxCallback1("list",{table:'shop'},(data) => {
+                let sslist = []
+                for (let s of data) {
+                    sslist.push({label:s.sname,value:s.id})
+                }
+                this.slist = sslist
+            });
+        },
+        methods: {
+            handleSortChange(obj){
+                if(!obj || !obj.prop){
+                    delete this.sobj.sort
+                    delete this.sobj.order
+                }else{
+                    this.sobj.sort = obj.prop
+                    this.sobj.order = obj.order === 'ascending' ? 'asc' : (obj.order === 'descending' ? 'desc' : null)
+                }
+                this.refreshData()
+            },
+            handleFilterChange(filters){
+                if(!filters){ return }
+                if(filters.roletype){
+                    this.sobj.roletype = (filters.roletype && filters.roletype.length) ? filters.roletype[0] : null
+                }
+                this.refreshData()
+            },
+            handleSelectionChange(rows) {
+                this.selectedKeys = (rows || []).map(function (r) { return r.id })
+            },
+            batchDel() {
+                if (!this.selectedKeys || !this.selectedKeys.length) {
+                    ElementPlus.ElMessage.warning('请先勾选要删除的行')
+                    return
+                }
+                var self = this
+                ElementPlus.ElMessageBox.confirm('确认批量删除选中的 ' + this.selectedKeys.length + ' 个用户吗？', '提示', {
+                    confirmButtonText: '确认',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(function () {
+                    CrudEnhance.batchDelete(self.tbname, self.selectedKeys, function () {
+                        self.selectedKeys = []
+                        self.refreshData()
+                        ElementPlus.ElMessage.success('批量删除完成')
+                    })
+                }).catch(function () {})
+            },
+            exportCurrent() {
+                CrudEnhance.exportCsv('用户管理_' + getNowDate() + '.csv', this.dataSource)
+            },
+            checkUser(){
+                if(this.fobj.username){
+                    ajaxCallback1("find",{table:'user',username:this.fobj.username},(r) => {
+                        if(r && r.id && !this.fobj.id){
+                            this.dumpuser = true
+                        }else{
+                            this.dumpuser = false
+                        }
+                    });
+                }else{
+                    this.dumpuser = false
+                }
+            },
+            toReset(){
+                this.sobj = {}
+                this.selectedKeys = []
+                this.refreshData()
+            },
+            refreshData(){
+                let s = this.sobj
+                s.table = this.tbname
+                s.page = this.page.current
+                s.limit = this.page.limit
+                this.loading = true
+                ajaxCallback1('listPage',s,(r)=>{
+                    this.loading = false
+                    for (let s of r.rows) {
+                        if(s.roletype == '1'){
+                            s.rstr = '超级管理员'
+                        }else if(s.roletype == '5'){
+                            s.rstr = '运营管理员'
+                        }else if(s.roletype == '6'){
+                            s.rstr = '审核管理员'
+                        }else if(s.roletype == '2'){
+                            s.rstr = '用户'
+                        }else if(s.roletype == '3'){
+                            s.rstr = '商家'
+                        }
+                    }
+                    this.dataSource = r.rows
+                    this.page.total = r.total
+                })
+            },
+            showEdit(row){
+                this.showe = true
+                this.dumpuser = false
+                if(row){
+                    this.fobj = row
+                    editor.txt.html(row.note);
+                    showAttach('imgctn',row.img)
+                }else{
+                    showAttach('imgctn',null)
+                    this.fobj = {
+                        roletype:'2',
+                        sex:'男'
+                    }
+                }
+
+            },
+            submit1(){
+                this.$refs.fobjform1.validate((isValidate, model, errors) => {
+                    if(isValidate){
+                        this.save()
+                    }
+                })
+            },
+            save(){
+                if(this.dumpuser){
+                    alert("用户名已存在")
+                    return
+                }
+                this.fobj.note = editor.txt.html();
+                this.fobj.table = this.tbname;this.fobj.ndate = null
+                if(this.fobj.sid){
+                    this.fobj.shop = (this.slist.find((item) => item.value == this.fobj.sid)).label
+                }
+                ajaxFormUploadFile((rimg)=>{
+                    this.fobj.img = rimg
+                    ajaxCallback1("save",this.fobj,(rid) => {
+                        console.log(rid)
+                        this.showe = false
+                        this.refreshData()
+                    });
+                })
+
+            },
+            cancel(){
+                this.showe = false
+            },
+            del(id){
+                ElementPlus.ElMessageBox.alert('确认删除吗?', '提示!', {
+                    confirmButtonText: '确认',
+                    callback: (action) => {
+                        ajaxCallback1("delete",{table: this.tbname, id: id},(r) => {
+                            this.refreshData()
+                        });
+                    }
+                })
+            }
+        },
+    };
+    const app = Vue.createApp(App);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+    app.use(ElementPlus,{
+        locale: ElementPlusLocaleZhCn,
+    });
+    app.mount("#app");
+</script>
+
+<script type="text/javascript" src="__PUBLIC__/weditor/wangEditor.js"></script>
+
+<script type="text/javascript">
+    var E = window.wangEditor;
+    var editor = new E('#editor');
+    // 或者 var editor = new E( document.getElementById('editor') )
+    editor.config.uploadImgShowBase64 = false;   // 使用 base64 保存图片
+    editor.config.uploadImgServer = _editorUpload;
+    editor.config.uploadVideoServer = _editorUploadVideo;
+    editor.config.uploadFileName = 'file';
+    editor.config.uploadVideoName = 'file';
+    editor.config.zIndex = 0;
+    editor.create()
+</script>
+</html>

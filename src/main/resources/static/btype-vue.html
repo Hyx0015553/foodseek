@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./__PUBLIC__/layui-vue/layuivue.css" />
+    <link rel="stylesheet" href="./__PUBLIC__/layui-vue/public.css" />
+    <script src="./__PUBLIC__/layui-vue/vue.global.js"></script>
+    <script src="./__PUBLIC__/layui-vue/layui-vue.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <style>
+
+    </style>
+</head>
+<body>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm">
+    <input style="display: none;" id="selectimginput" onchange="showPicImg(this.files);" name="file" type="file"/>
+</form>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm2">
+    <input style="display: none;" id="selectimginput2" onchange="showPicImg2(this.files);" name="file" type="file"/>
+</form>
+<div id="app">
+
+    <lay-container>
+        <lay-field title="搜索">
+            <lay-form :model="sobj">
+                <lay-row>
+                    <lay-col :md="6">
+                        <lay-form-item label="标题:" :label-width="0">
+                            <lay-input v-model="sobj.title" style="width: 100%"></lay-input>
+                        </lay-form-item>
+                    </lay-col>
+                    <lay-col :md="6">
+                        <lay-form-item label-width="0">
+                            <lay-button type="normal" style="margin-left: 10px" @click="refreshData" prefix-icon="layui-icon-search">查询</lay-button>
+                            <lay-button type="danger" @click="toReset" prefix-icon="layui-icon-refresh-three">重置</lay-button>
+                        </lay-form-item>
+                    </lay-col>
+                </lay-row>
+            </lay-form>
+        </lay-field>
+        <div style="min-height: 300px;">
+            <lay-table
+                    :page="page"
+                    :resize="true"
+                    :height="'100%'"
+                    :columns="columns"
+                    :loading="loading"
+                    :default-toolbar="true"
+                    :data-source="dataSource"
+                    v-model:selected-keys="selectedKeys"
+                    @change="refreshData"
+                    @sortChange="sortChange"
+                    :even="true">
+                <template #status="{ row }">
+                    <lay-switch :model-value="row.status" @change="changeStatus($event , row)"></lay-switch>
+                </template>
+                <template v-slot:toolbar>
+                    <lay-button size="sm" type="normal" @click="showEdit()">新增</lay-button>
+                    <!--<lay-button size="sm" @click="remove">删除</lay-button>-->
+                </template>
+                <template v-slot:operator="{ row }">
+                    <!--<lay-button size="xs" @click="showStable(row)" type="warm">管理子分类</lay-button>-->
+                    <lay-button size="xs" @click="showEdit(row)" type="normal">查看编辑</lay-button>
+                    <lay-button size="xs" @click="del(row.id)" type="danger">删除</lay-button>
+                </template>
+            </lay-table>
+        </div>
+
+        <div class="formdialog" v-show="showe">
+            <div class="formdialogtitle">查看编辑<span class="formdialogtitlegb" @click="showe=false"></span></div>
+            <lay-form ref="fobjform1" required :pane="true" :model="fobj">
+                <lay-form-item label="标题" prop="title">
+                    <lay-input type="text" v-model="fobj.title"></lay-input>
+                </lay-form-item>
+                <!--<div class="layui-form-item" style="text-align: center;">
+                    <div style="width: 150px;margin-left: 35%;">
+                        <div style="text-align: center;">
+                            <div style="text-align: center;" id="imgctn"></div>
+                            <a href="#" onclick="getFileInput(this);">选择封面</a>
+                        </div>
+                    </div>
+                </div>-->
+
+                <lay-form-item style="text-align: center;margin-top: 50px;">
+                    <lay-button type="normal" @click="submit1">提交</lay-button>
+                    <lay-button type="default" @click="cancel">取消</lay-button>
+                </lay-form-item>
+            </lay-form>
+        </div>
+
+
+
+        <lay-layer title="查看列表" :maxmin="true" v-model="showt" :shade="false" :area="['80%', '90%']" >
+            <div class="spadding">
+                <lay-field title="搜索">
+                    <lay-form :model="sobj2">
+                        <lay-row>
+                            <lay-col :md="6">
+                                <lay-form-item label="标题:" :label-width="0">
+                                    <lay-input v-model="sobj2.title" style="width: 100%"></lay-input>
+                                </lay-form-item>
+                            </lay-col>
+                            <lay-col :md="6">
+                                <lay-form-item label-width="0">
+                                    <lay-button type="normal" style="margin-left: 10px" @click="refreshData2" prefix-icon="layui-icon-search">查询</lay-button>
+                                    <lay-button type="danger" @click="toReset2" prefix-icon="layui-icon-refresh-three">重置</lay-button>
+                                </lay-form-item>
+                            </lay-col>
+                        </lay-row>
+                    </lay-form>
+                </lay-field>
+                <div>
+                    <lay-table
+                            :page="page2"
+                            :resize="true"
+                            :height="'100%'"
+                            :columns="columns2"
+                            :loading="loading2"
+                            :default-toolbar="true"
+                            :data-source="dataSource2"
+                            v-model:selected-keys="selectedKeys2"
+                            @change="refreshData2"
+                            @sortChange="sortChange2"
+                            :even="true">
+
+                        <template v-slot:toolbar>
+                            <lay-button size="sm" type="normal" @click="showEdit2()">新增</lay-button>
+                            <!--<lay-button size="sm" @click="remove">删除</lay-button>-->
+                        </template>
+                        <template v-slot:operator="{ row }">
+                            <lay-button size="xs" @click="showEdit2(row)" type="normal">查看编辑</lay-button>
+                            <lay-button size="xs" @click="del2(row.id)" type="danger">删除</lay-button>
+                        </template>
+                    </lay-table>
+                </div>
+            </div>
+        </lay-layer>
+
+        <div class="formdialog toptopdialog" v-show="showe2">
+            <div class="formdialogtitle"><span class="formdialogtitlegb" @click="showe2=false"></span></div>
+            <lay-form :model="fobj2">
+                <lay-form-item label="标题" prop="title">
+                    <lay-input type="text" v-model="fobj2.title"></lay-input>
+                </lay-form-item>
+
+                <lay-form-item style="text-align: center;margin-top: 50px;">
+                    <lay-button type="normal" @click="save2">提交</lay-button>
+                    <lay-button type="default" @click="cancel2">取消</lay-button>
+                </lay-form-item>
+            </lay-form>
+        </div>
+    </lay-container>
+</div>
+<script>
+    const App = {
+        data() {
+            return {
+                tbname:'btype',
+                showe:false,
+                sobj:{},
+                fobj:{
+
+                },
+                page:{ current: 1, limit: 10, total: 100 },
+                selectedKeys:[],
+                loading:false,
+                columns:[
+                    //{ title:"选项", width: "55px", type: "checkbox", ellipsisTooltip:true },
+                    { title:"编号", key:"id", ellipsisTooltip:true, sort: "desc" },
+                    { title:"标题", key:"title", ellipsisTooltip:true, sort: "desc" },
+                    { title:"操作", width: "250px", customSlot:"operator", key:"operator", fixed: "right", ignoreExport: true }
+                ],
+                dataSource:[],
+
+
+                tbname2:'type2',
+                pobj:{},
+                showt:false,
+                showe2:false,
+                sobj2:{},
+                fobj2:{
+
+                },
+                page2:{ current: 1, limit: 10, total: 100 },
+                selectedKeys2:[],
+                loading2:false,
+                columns2:[
+                    //{ title:"选项", width: "55px", type: "checkbox", ellipsisTooltip:true },
+                    { title:"编号", key:"id", ellipsisTooltip:true, sort: "desc" },
+                    { title:"标题", key:"title", ellipsisTooltip:true, sort: "desc" },
+                    { title:"操作", width: "180px", customSlot:"operator", key:"operator", fixed: "right", ignoreExport: true }
+                ],
+                dataSource2:[]
+            };
+        },
+        mounted() {
+            this.refreshData()
+        },
+        methods: {
+            toReset(){
+              this.sobj = {}
+            },
+            refreshData(){
+                let s = this.sobj
+                s.table = this.tbname
+                s.page = this.page.current
+                s.limit = this.page.limit
+                this.loading = true
+                ajaxCallback1('listPage',s,(r)=>{
+                    this.loading = false
+                    this.dataSource = r.rows
+                    this.page.total = r.total
+                })
+            },
+            showEdit(row){
+                this.showe = true
+                if(row){
+                    this.fobj = row
+                    //editor.txt.html(row.note);
+                    //showAttach("imgctn",row.img)
+                }else{
+                    this.fobj = {}
+                    //editor.txt.html("");
+                    //showAttach("imgctn","")
+                }
+
+            },
+            submit1(){
+                this.$refs.fobjform1.validate((isValidate, model, errors) => {
+                    if(isValidate){
+                        this.save()
+                    }
+                })
+            },
+            save(){
+
+                this.fobj.table = this.tbname
+                //this.fobj.note = editor.txt.html();
+                /*ajaxFormUploadFile((rimg)=>{
+                    this.fobj.img = rimg*/
+                    ajaxCallback("save",this.fobj,(rid) => {
+                        console.log(rid)
+                        this.showe = false
+                        this.refreshData()
+                    });
+                //})
+
+            },
+            cancel(){
+                this.showe = false
+            },
+            del(id){
+                ajaxCallback1("delete",{table: this.tbname, id: id},(r) => {
+                    this.refreshData()
+                });
+            },
+            sortChange(key, sort) {
+                this.sobj.sort = key
+                this.sobj.order = sort
+                this.refreshData()
+            },
+
+
+            showStable(row){
+                this.showt = true
+                this.sobj2.pid = row.id
+                this.pobj = row
+                this.refreshData2()
+            },
+            toReset2(){
+                this.sobj2 = {}
+            },
+            refreshData2(){
+                let s = this.sobj2
+                s.table = this.tbname2
+                s.page = this.page2.current
+                s.limit = this.page2.limit
+                this.loading2 = true
+                ajaxCallback1('listPage',s,(r)=>{
+                    this.loading2 = false
+                    this.dataSource2 = r.rows
+                    this.page2.total = r.total
+                })
+            },
+            showEdit2(row){
+                this.showe2 = true
+                if(row){
+                    this.fobj2 = row
+                    //editor2.txt.html(row.note);
+                    //showAttach("imgctn",row.img)
+                }else{
+                    this.fobj2 = {}
+                    //editor2.txt.html("");
+                }
+
+            },
+            save2(){
+                this.fobj2.table = this.tbname2
+                //this.fobj2.note = editor2.txt.html()
+                this.fobj2.pid = this.pobj.id
+                ajaxCallback("save",this.fobj2,(rid) => {
+                    console.log(rid)
+                    this.showe2 = false
+                    this.refreshData2()
+                });
+            },
+            cancel2(){
+                this.showe2 = false
+            },
+            del2(id){
+                ajaxCallback1("delete",{table: this.tbname2, id: id},(r) => {
+                    this.refreshData2()
+                });
+            },
+            sortChange2(key, sort) {
+                this.sobj2.sort = key
+                this.sobj2.order = sort
+                this.refreshData2()
+            },
+        },
+    };
+    const app = Vue.createApp(App);
+    app.use(LayuiVue);
+    app.mount("#app");
+</script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/index.css" />
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/public.css" />
+    <script src="./__PUBLIC__/elementui-vue/vue.global.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/icons-vue.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/element-plus.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/zh-cn.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-header style="height: auto;">
+            <div class="searchctn">
+                <el-form :model="sobj" :inline="true" label-width="auto">
+                    <el-form-item label="店铺">
+                        <el-input v-model="sobj.shop" ></el-input>
+                    </el-form-item>
+                    <el-form-item label="状态">
+                        <el-select v-model="sobj.statecn" placeholder="全部" clearable style="min-width: 160px">
+                            <el-option label="待处理" value="待处理"></el-option>
+                            <el-option label="申诉成功" value="申诉成功"></el-option>
+                            <el-option label="申诉失败" value="申诉失败"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="refreshData">搜索</el-button>
+                        <el-button type="success" @click="toReset">重置</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+        </el-header>
+        <el-main>
+            <div class="datagridctn">
+                <div class="tablectn">
+                    <el-table stripe v-loading="loading" :data="dataSource" current-row-key="id" :highlight-current-row="true" :show-overflow-tooltip="true" style="width: 100%" @sort-change="handleSortChange" @filter-change="handleFilterChange">
+                        <el-table-column prop="id" sortable label="编号" width="80" align="center"></el-table-column>
+                        <el-table-column prop="shop" label="店铺" align="center"></el-table-column>
+                        <el-table-column prop="rid" label="评价ID" width="100" align="center"></el-table-column>
+                        <el-table-column prop="reason" label="申诉理由" align="center" min-width="220"></el-table-column>
+                        <el-table-column prop="statecn" label="状态" width="100" align="center" :filters="appealStateFilters" :filter-multiple="false" column-key="statecn"></el-table-column>
+                        <el-table-column prop="ndate" label="申诉时间" width="160" align="center"></el-table-column>
+                        <el-table-column fixed="right" label="操作" width="260" align="center">
+                            <template #default="scope">
+                                <el-button link type="primary" size="small" @click="viewReplay(scope.row)">查看原评价</el-button>
+                                <el-button v-if="scope.row.statecn==='待处理'" link type="success" size="small" @click="handleAppeal(scope.row, 'success')">删除评价</el-button>
+                                <el-button v-if="scope.row.statecn==='待处理'" link type="danger" size="small" @click="handleAppeal(scope.row, 'fail')">驳回申诉</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <div class="paginationctn">
+                    <el-pagination
+                            v-model:current-page="page.current"
+                            v-model:page-size="page.limit"
+                            :page-sizes="[10, 20, 50, 100]"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="page.total"
+                            @size-change="refreshData"
+                            @current-change="refreshData">
+                    </el-pagination>
+                </div>
+            </div>
+
+            <!-- 查看原评价弹窗 -->
+            <el-dialog v-model="showReplay" title="原评价详情" width="600px">
+                <div v-if="replay">
+                    <p><b>评价ID：</b>{{ replay.id }}</p>
+                    <p><b>用户：</b>{{ replay.username }} (ID: {{ replay.uid }})</p>
+                    <p><b>时间：</b>{{ replay.ndate }}</p>
+                    <p><b>评分：</b>{{ replay.pf }}</p>
+                    <p><b>内容：</b></p>
+                    <p style="white-space: pre-wrap;">{{ replay.note }}</p>
+                </div>
+                <template #footer>
+                    <span class="dialog-footer">
+                      <el-button @click="showReplay = false">关 闭</el-button>
+                    </span>
+                </template>
+            </el-dialog>
+
+            <!-- 处理申诉弹窗 -->
+            <el-dialog v-model="showHandle" :title="handleType === 'success' ? '确认删除评价并通过申诉' : '驳回申诉'" width="600px">
+                <div v-if="currentAppeal">
+                    <p><b>店铺：</b>{{ currentAppeal.shop }}</p>
+                    <p><b>申诉理由：</b>{{ currentAppeal.reason }}</p>
+                    <el-form :model="handleForm" label-width="80px" style="margin-top: 12px;">
+                        <el-form-item label="说明">
+                            <el-input
+                                    type="textarea"
+                                    v-model="handleForm.note"
+                                    :rows="3"
+                                    :placeholder="handleType === 'success'
+                                      ? '给商家的处理说明（仅商家可见）。用户端将收到平台统一提示，不会展示此处内容。'
+                                      : '给商家的驳回原因（仅商家可见）。用户端将收到平台统一提示，不会展示此处内容。'">
+                            </el-input>
+                        </el-form-item>
+                    </el-form>
+                </div>
+                <template #footer>
+                    <span class="dialog-footer">
+                      <el-button @click="showHandle = false">取 消</el-button>
+                      <el-button type="primary" @click="doHandleAppeal">确 认</el-button>
+                    </span>
+                </template>
+            </el-dialog>
+        </el-main>
+        <el-footer></el-footer>
+    </el-container>
+</div>
+
+</body>
+<script>
+    const App = {
+        data() {
+            return {
+                sobj: {},
+                page: { current: 1, limit: 10, total: 0 },
+                loading: false,
+                dataSource: [],
+                appealStateFilters:[
+                    { text:'待处理', value:'待处理' },
+                    { text:'申诉成功', value:'申诉成功' },
+                    { text:'申诉失败', value:'申诉失败' },
+                ],
+                // 查看原评价
+                showReplay: false,
+                replay: null,
+                // 处理申诉
+                showHandle: false,
+                handleType: '',
+                currentAppeal: null,
+                handleForm: {
+                    note: ''
+                }
+            }
+        },
+        mounted() {
+            this.applyUrlShopScope()
+            this.refreshData()
+        },
+        methods: {
+            applyUrlShopScope() {
+                try {
+                    const sp = new URLSearchParams(window.location.search || '')
+                    if (!this.sobj) this.sobj = {}
+                    if (sp.get('scope') === 'pending') {
+                        this.sobj.statecn = '待处理'
+                    }
+                    const q = sp.get('sid')
+                    if (q && /^\d+$/.test(String(q).trim())) {
+                        this.sobj.sid = parseInt(q.trim(), 10)
+                    }
+                } catch (e) {}
+            },
+            handleSortChange(obj){
+                if(!obj || !obj.prop){
+                    delete this.sobj.sort
+                    delete this.sobj.order
+                }else{
+                    this.sobj.sort = obj.prop
+                    this.sobj.order = obj.order === 'ascending' ? 'asc' : (obj.order === 'descending' ? 'desc' : null)
+                }
+                this.refreshData()
+            },
+            handleFilterChange(filters){
+                if(!filters){ return }
+                if(filters.statecn){
+                    this.sobj.statecn = (filters.statecn && filters.statecn.length) ? filters.statecn[0] : null
+                }
+                this.refreshData()
+            },
+            toReset() {
+                this.sobj = {}
+                this.refreshData()
+            },
+            refreshData() {
+                let s = this.sobj
+                s.table = 'replay_appeal'
+                s.page = this.page.current
+                s.limit = this.page.limit
+                this.loading = true
+                ajaxCallback1('listPage', s, (r) => {
+                    this.loading = false
+                    this.dataSource = r.rows || []
+                    this.page.total = r.total || 0
+                })
+            },
+            // 查看原评价详情
+            viewReplay(row) {
+                ajaxCallback1('find', { table: 'replay', id: row.rid }, (r) => {
+                    this.replay = r
+                    this.showReplay = true
+                })
+            },
+            // 打开处理弹窗
+            handleAppeal(row, type) {
+                this.currentAppeal = row
+                this.handleType = type
+                this.handleForm.note = ''
+                this.showHandle = true
+            },
+            // 执行处理逻辑
+            doHandleAppeal() {
+                if (!this.currentAppeal) {
+                    return
+                }
+                const appeal = this.currentAppeal
+                const note = this.handleForm.note || ''
+                // 先查出原评价（拿到 uid），再按不同结果处理
+                ajaxCallback1('find', { table: 'replay', id: appeal.rid }, (replay) => {
+                    if (this.handleType === 'success') {
+                        // 删除评价后再更新申诉状态 & 发消息
+                        ajaxCallback1('delete', { table: 'replay', id: appeal.rid }, (r1) => {
+                            this.afterHandle('申诉成功', note, replay)
+                        })
+                    } else {
+                        // 不删评价，只更新申诉状态 & 发消息
+                        this.afterHandle('申诉失败', note, replay)
+                    }
+                })
+            },
+            // 更新申诉状态 & 推送系统消息
+            afterHandle(statecn, note, replay) {
+                const appeal = this.currentAppeal
+                // 更新申诉状态
+                ajaxCallback1('save', {
+                    table: 'replay_appeal',
+                    id: appeal.id,
+                    statecn: statecn
+                }, (rid) => {
+                    // 给商家推送一条系统消息
+                    const msgShop = {
+                        table: 'sysmsg',
+                        title: '评价申诉处理结果',
+                        sid: appeal.sid,
+                        shop: appeal.shop,
+                        note: note || (statecn === '申诉成功'
+                            ? '您对用户评价的申诉已通过，系统已删除该条评价。'
+                            : '您对用户评价的申诉未通过，该评价将继续保留。')
+                    }
+                    ajaxCallback1('save', msgShop, function () {})
+
+                    // 给用户推送一条系统消息（小程序「消息-系统」页展示；与商家说明分离，始终使用平台统一话术）
+                    if (replay && replay.uid) {
+                        const shopName = (appeal.shop != null && String(appeal.shop).trim()) ? String(appeal.shop).trim() : ''
+                        const rawReplayNote = replay.note != null ? String(replay.note) : ''
+                        let replaySnippet = rawReplayNote.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+                        if (replaySnippet.length > 120) replaySnippet = replaySnippet.slice(0, 120) + '…'
+                        const tailOk = '经平台审核，该条评价不符合平台规范，已作删除处理。'
+                        const tailFail = '商家曾就该条评价发起申诉，经平台复核，未发现违规情形，评价将继续展示。感谢您的理解。'
+                        const tail = statecn === '申诉成功' ? tailOk : tailFail
+                        let userNote = ''
+                        if (shopName) userNote += '店铺：' + shopName + '\n'
+                        if (replaySnippet) userNote += '评价内容：' + replaySnippet + '\n'
+                        if (shopName || replaySnippet) userNote += '\n'
+                        userNote += tail
+                        const msgUser = {
+                            table: 'huihua',
+                            uid: replay.uid,
+                            fid: 0,
+                            fusername: '系统通知',
+                            note: userNote,
+                            msgtype: statecn === '申诉成功' ? 11 : 12,
+                            type: 1,
+                            shop: shopName,
+                            qtitle: replaySnippet
+                        }
+                        ajaxCallback1('save', msgUser, function () {})
+                    }
+
+                    ElementPlus.ElMessage.success('处理成功')
+                    this.showHandle = false
+                    this.refreshData()
+                })
+            }
+        }
+    }
+    const app = Vue.createApp(App);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+    app.use(ElementPlus, {
+        locale: ElementPlusLocaleZhCn,
+    });
+    app.mount("#app");
+</script>
+</html>
+

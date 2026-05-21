@@ -1,0 +1,2254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>首页二</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="icon" href="./__PUBLIC__/layuimini/images/favicon.ico">
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/lib/layui-v2.5.5/css/layui.css" media="all">
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/css/layuimini.css?v=2.0.4.2" media="all">
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/css/themes/default.css" media="all">
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/layuimini/lib/layui-v2.5.5/layui.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/echarts.min.js"></script>
+    <style>
+        body {
+            background-color: #f5f6fa;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            color: #1f2328;
+        }
+
+        .layuimini-container {
+            padding: 20px 24px 28px;
+        }
+
+        .layuimini-main {
+            background: transparent;
+        }
+
+        /* 顶部标题区 */
+        .page-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2328;
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            color: #8a8f98;
+            margin-left: 8px;
+        }
+
+        .page-header-right {
+            font-size: 12px;
+            color: #8a8f98;
+        }
+
+        /* 全局筛选器 */
+        .filter-bar{
+            position: relative;
+            z-index: 20;
+            background: linear-gradient(165deg, #ffffff 0%, #f8fafc 45%, #fff7ed 100%);
+            border: 1px solid rgba(99, 102, 241, 0.14);
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.07), 0 1px 0 rgba(255,255,255,0.9) inset;
+            border-radius: 14px;
+            padding: 16px 18px 14px;
+            margin-bottom: 18px;
+            overflow: visible;
+        }
+        .filter-bar::before{
+            content: "";
+            position: absolute;
+            left: 0; top: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #f97316, #10b981);
+            opacity: 0.95;
+        }
+        .filter-head{
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .filter-title{
+            font-size: 15px;
+            font-weight: 700;
+            color:#1f2937;
+            margin: 0;
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+        .filter-title .fa{
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #eef2ff, #fff);
+            border: 1px solid rgba(99,102,241,.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4f46e5;
+            font-size: 16px;
+        }
+        .filter-desc{
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 400;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+        .filter-actions{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .filter-actions .layui-btn{ border-radius: 8px; }
+
+        /* 时间范围 / 店铺：卡片式选择器 */
+        .filter-controls{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-start;
+            margin-top: 6px;
+            overflow: visible;
+        }
+        .filter-chip{
+            flex: 1;
+            min-width: 240px;
+            max-width: 360px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.98);
+            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.05);
+            padding: 12px 14px 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            overflow: visible;
+            position: relative;
+            z-index: 1;
+        }
+        .filter-chip-shop{
+            z-index: 22;
+        }
+        .filter-chip-time{
+            z-index: 21;
+        }
+        .filter-chip:hover{
+            border-color: rgba(99, 102, 241, 0.28);
+            box-shadow: 0 6px 24px rgba(99, 102, 241, 0.09);
+        }
+        .filter-chip-head{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+        }
+        .filter-chip-head .fa{
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .filter-chip-time .filter-chip-head .fa{
+            background: linear-gradient(145deg, #eef2ff, #e0e7ff);
+            color: #4338ca;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .filter-chip-shop .filter-chip-head .fa{
+            background: linear-gradient(145deg, #fff7ed, #ffedd5);
+            color: #c2410c;
+            border: 1px solid rgba(249, 115, 22, 0.25);
+        }
+        .filter-chip .layui-input-block{
+            margin-left: 0 !important;
+        }
+        /* 未经 Layui 渲染前的原生 select */
+        .filter-chip select{
+            width: 100%;
+            height: 44px;
+            padding: 0 40px 0 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            line-height: 44px;
+            background-color: #f8fafc;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+        }
+        .filter-chip select:hover{
+            border-color: #a5b4fc;
+            background-color: #ffffff;
+        }
+        .filter-chip select:focus{
+            outline: none;
+            border-color: #6366f1;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+        }
+        /* Layui form.render 后的下拉外观 */
+        .filter-bar .filter-chip .layui-form-select{
+            width: 100%;
+            margin-top: 0;
+            position: relative;
+            z-index: inherit;
+        }
+        .filter-bar .filter-chip .layui-form-select .layui-select-title input.layui-unselect{
+            height: 44px !important;
+            line-height: 44px !important;
+            padding-left: 14px !important;
+            padding-right: 36px !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            color: #0f172a !important;
+            border-radius: 10px !important;
+            border: 1.5px solid #e2e8f0 !important;
+            background: #f8fafc !important;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+        .filter-bar .filter-chip .layui-form-select:hover .layui-select-title input.layui-unselect{
+            border-color: #a5b4fc !important;
+            background: #ffffff !important;
+        }
+        .filter-bar .filter-chip .layui-form-select.layui-form-selected .layui-select-title input.layui-unselect,
+        .filter-bar .filter-chip .layui-form-select dd.layui-this{
+            border-color: #6366f1 !important;
+        }
+        .filter-bar .filter-chip dl.layui-anim-upbit{
+            top: 46px !important;
+            z-index: 100002 !important;
+            border-radius: 10px !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12) !important;
+            padding: 6px 0 !important;
+            max-height: 280px !important;
+            overflow-y: auto !important;
+        }
+        .filter-bar .filter-chip dl dd{
+            line-height: 40px !important;
+            padding: 0 14px !important;
+            font-size: 14px !important;
+        }
+        .filter-bar .filter-chip dl dd:hover{
+            background: #eef2ff !important;
+            color: #4338ca !important;
+        }
+        .filter-bar .filter-chip dl dd.layui-this{
+            background: linear-gradient(90deg, #eef2ff, #fff) !important;
+            color: #4338ca !important;
+            font-weight: 600;
+        }
+
+        /* 顶部统计卡片 */
+        .stat-cards {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .stat-card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 16px 18px 14px;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(31, 35, 40, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stat-title {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+
+        .stat-main {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 30px;
+            font-weight: 700;
+            color: #ff6a00;
+        }
+
+        .stat-unit {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .stat-footer {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* 下方模块概览区域 */
+        .overview-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .overview-card {
+            flex: 1;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 12px 14px 10px;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(31, 35, 40, 0.04);
+        }
+
+        .overview-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .overview-title::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ffb347, #ff6a00);
+            box-shadow: 0 8px 18px rgba(255, 106, 0, 0.35);
+        }
+
+        .overview-list {
+            margin-top: 6px;
+            padding-top: 4px;
+            border-top: 1px dashed #e5e7eb;
+        }
+
+        .overview-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 4px;
+            font-size: 13px;
+            color: #4b5563;
+        }
+
+        .overview-item + .overview-item {
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .overview-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .overview-count {
+            font-weight: 600;
+            color: #ff6a00;
+        }
+
+        .overview-link {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .overview-link a {
+            color: #2563eb;
+        }
+
+        /* 图表区域 */
+        .chart-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 4px;
+        }
+
+        .chart-card {
+            flex: 1;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 12px 14px 6px;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(31, 35, 40, 0.04);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chart-subtitle {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .chart-body {
+            flex: 1;
+            min-height: 240px;
+        }
+        /* 商家横向对比：条目多时在卡片内滚动，避免纵向柱状图挤成一团 */
+        .shop-compare-chart-wrap {
+            max-height: min(720px, 75vh);
+            overflow-y: auto;
+            overflow-x: hidden;
+            border-radius: 8px;
+            border: 1px solid #f3f4f6;
+            background: #fafbfc;
+        }
+        .shop-compare-chart-wrap .chart-body {
+            min-height: 0;
+        }
+
+        .chart-row--compare-full {
+            width: 100%;
+        }
+        .chart-card--compare {
+            width: 100%;
+            border-radius: 14px;
+            background: linear-gradient(165deg, #ffffff 0%, #f8fafc 55%, #ffffff 100%);
+            border: 1px solid #e8ecf1;
+            box-shadow: 0 14px 44px rgba(15, 23, 42, 0.07);
+        }
+        .compare-panel-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 2px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .compare-panel-title {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .cph-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ffb347, #ff6a00);
+            color: #fff;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(255, 106, 0, 0.25);
+        }
+        .cph-main {
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+        }
+        .cph-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 5px;
+            max-width: 640px;
+            line-height: 1.55;
+        }
+        .compare-summary-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .cssp-item {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 6px;
+            padding: 7px 13px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #475569;
+        }
+        .cssp-item b {
+            color: #0f172a;
+            font-weight: 800;
+        }
+        .compare-split {
+            display: flex;
+            gap: 18px;
+            align-items: stretch;
+            margin-top: 6px;
+        }
+        .compare-split-chart {
+            flex: 1;
+            min-width: 0;
+        }
+        .compare-split-side {
+            width: 232px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .cmp-side-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 2px;
+        }
+        .cmp-side-card {
+            background: #fff;
+            border: 1px solid #e8ecf1;
+            border-radius: 12px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+        }
+        .cmp-side-card:hover {
+            border-color: #fdba74;
+            box-shadow: 0 10px 28px rgba(255, 106, 0, 0.14);
+            transform: translateY(-1px);
+        }
+        .cmp-side-rank {
+            font-size: 17px;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+        .cmp-side-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.4;
+            max-height: 2.8em;
+            overflow: hidden;
+        }
+        .cmp-side-val {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ea580c;
+            margin-top: 8px;
+            font-variant-numeric: tabular-nums;
+        }
+        .cmp-side-hint {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .cmp-side-empty {
+            font-size: 12px;
+            color: #94a3b8;
+            padding: 20px 12px;
+            text-align: center;
+            border: 1px dashed #e2e8f0;
+            border-radius: 12px;
+            background: #fafafa;
+        }
+        @media (max-width: 1100px) {
+            .compare-split {
+                flex-direction: column;
+            }
+            .compare-split-side {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .cmp-side-card {
+                flex: 1;
+                min-width: 160px;
+            }
+        }
+
+        /* 分析域 Tab */
+        .domain-tabs{
+            margin-top: 16px;
+        }
+        .domain-panel{
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 12px 14px 10px;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(31, 35, 40, 0.04);
+            margin-top: 12px;
+        }
+        .domain-kpis{
+            display:grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .mini-kpi{
+            border: 1px solid #f3f4f6;
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: #fff;
+        }
+        .mini-kpi .k{ font-size: 12px; color:#6b7280; }
+        .mini-kpi .v{ font-size: 18px; font-weight: 800; color:#111827; margin-top: 6px; }
+        .drill{
+            font-size:12px;
+            color:#2563eb;
+            cursor:pointer;
+        }
+        .drill:hover{ text-decoration: underline; }
+        .shop-rank-table { margin-top: 12px; }
+        .shop-rank-table .layui-table { margin: 0; }
+        .shop-detail-link { color: #2563eb; cursor: pointer; }
+        .shop-detail-link:hover { text-decoration: underline; }
+        .compare-toolbar{
+            display:flex;
+            align-items:center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 10px 0 6px;
+            flex-wrap: wrap;
+        }
+        .compare-toolbar .ct-left{
+            display:flex;
+            align-items:center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .compare-toolbar .ct-right{
+            display:flex;
+            align-items:center;
+            gap: 10px;
+        }
+        .hint{
+            font-size:12px;
+            color:#9ca3af;
+        }
+        .layui-table-view{ margin: 0; }
+        @media (max-width: 1100px){
+            .domain-kpis{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 768px){
+            .domain-kpis{ grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 1100px) {
+            .stat-cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .overview-row {
+                flex-direction: column;
+            }
+
+            .chart-row {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stat-cards {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+
+            .layuimini-container {
+                padding: 16px 14px 20px;
+            }
+        }
+
+        /* 千帆运营简报：页内展示，不依赖 layer 弹层（iframe 内更稳） */
+        .ai-brief-panel {
+            display: none;
+            margin-bottom: 18px;
+            background: linear-gradient(165deg, #fffefb 0%, #fff 50%, #f8fafc 100%);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(245, 158, 11, 0.08);
+            overflow: hidden;
+        }
+        .ai-brief-panel-hd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(255, 251, 235, 0.95);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+            font-weight: 700;
+            font-size: 14px;
+            color: #92400e;
+        }
+        .ai-brief-facts {
+            padding: 10px 16px 0;
+            font-size: 12px;
+            color: #78716c;
+            line-height: 1.6;
+        }
+        .ai-brief-loading {
+            padding: 16px 18px;
+            color: #a16207;
+            font-size: 13px;
+        }
+        .ai-brief-body {
+            margin: 0;
+            padding: 14px 18px 18px;
+            max-height: 480px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 13px;
+            line-height: 1.75;
+            color: #374151;
+            font-family: "Microsoft YaHei", ui-sans-serif, sans-serif;
+            background: transparent;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+        <div class="page-header">
+            <div>
+                <span class="page-title">数据看板</span>
+            </div>
+            <div class="page-header-right">
+                支持筛选与钻取到明细
+            </div>
+        </div>
+
+        <div class="filter-bar layui-form layuimini-form">
+            <div class="filter-head">
+                <div>
+                    <div class="filter-title"><span class="fa fa-sliders"></span><span>全局筛选</span></div>
+                </div>
+                <div class="filter-actions">
+                    <button class="layui-btn layui-btn-normal" type="button" onclick="applyFilters()"><i class="fa fa-filter"></i> 应用筛选</button>
+                    <button class="layui-btn layui-btn-primary" type="button" onclick="resetFilters()"><i class="fa fa-refresh"></i> 重置</button>
+                    <button class="layui-btn layui-btn-primary" type="button" onclick="openInParent('workbench.html','工作台','fa fa-dashboard')"><i class="fa fa-dashboard"></i> 工作台</button>
+                    <button class="layui-btn layui-btn-warm" type="button" onclick="runPlatformAiBrief()"><i class="fa fa-magic"></i> 千帆·运营简报</button>
+                    <button class="layui-btn layui-btn-danger" type="button" id="btnBatchShopAiDecision" onclick="runBatchShopAiDecision()" style="display:none;"><i class="fa fa-paper-plane"></i> 全平台·AI决策推送各店</button>
+                </div>
+            </div>
+            <div class="filter-controls">
+                <div class="filter-chip filter-chip-time layui-form-item" style="margin-bottom:0;">
+                    <div class="filter-chip-head"><span class="fa fa-calendar"></span><span>时间范围</span></div>
+                    <div class="layui-input-block">
+                        <select id="f_range" name="f_range" lay-filter="f_range">
+                            <option value="7">近 7 天</option>
+                            <option value="30" selected>近 30 天</option>
+                            <option value="90">近 90 天</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-chip filter-chip-shop layui-form-item" style="margin-bottom:0;">
+                    <div class="filter-chip-head"><span class="fa fa-shopping-bag"></span><span>店铺</span></div>
+                    <div class="layui-input-block">
+                        <select id="f_shop" name="f_shop" lay-filter="f_shop">
+                            <option value="">全部店铺</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="aiBriefPanel" class="ai-brief-panel">
+            <div class="ai-brief-panel-hd">
+                <span><i class="fa fa-magic"></i> 千帆 · 运营简报</span>
+                <span>
+                    <button type="button" class="layui-btn layui-btn-xs layui-btn-primary" onclick="document.getElementById('aiBriefPanel').style.display='none'">收起</button>
+                </span>
+            </div>
+            <div id="aiBriefFacts" class="ai-brief-facts"></div>
+            <div id="aiBriefLoading" class="ai-brief-loading" style="display:none;">正在请求千帆分析，请稍候（约 15～90 秒）…</div>
+            <pre id="aiBriefBody" class="ai-brief-body"></pre>
+        </div>
+
+        <!-- 顶部统计卡片 -->
+        <div class="stat-cards">
+            <div class="stat-card">
+                <div class="stat-title">下单用户数</div>
+                <div class="stat-main">
+                    <span class="stat-value" id="userTotal">0</span>
+                    <span class="stat-unit">人</span>
+                </div>
+                <div class="stat-footer" id="statUserFoot">所选时间、店铺范围内，有过订单的去重用户数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">入驻商家数</div>
+                <div class="stat-main">
+                    <span class="stat-value" id="shopTotal">0</span>
+                    <span class="stat-unit">家</span>
+                </div>
+                <div class="stat-footer" id="statShopFoot">当前筛选下的店铺数量（选「全部」为全平台入驻数）</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">探店文章数</div>
+                <div class="stat-main">
+                    <span class="stat-value" id="blogTotal">0</span>
+                    <span class="stat-unit">篇</span>
+                </div>
+                <div class="stat-footer" id="statBlogFoot">时间范围内、所选店铺下发布的探店文章数</div>
+            </div>
+        </div>
+
+        <!-- 下方模块概览：按当前系统功能模块汇总 -->
+        <div class="overview-row layui-form layuimini-form">
+            <div class="overview-card">
+                <div class="overview-title">基础数据概览</div>
+                <div class="overview-list">
+                    <div class="overview-item">
+                        <div class="overview-label">下单用户（去重）</div>
+                        <div class="overview-count" id="userCount">0</div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-label">分类管理</div>
+                        <div class="overview-count" id="typeCount">0</div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-label">商品管理</div>
+                        <div class="overview-count" id="goodCount">0</div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-label">商家管理</div>
+                        <div class="overview-count" id="shopCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overview-card">
+                <div class="overview-title">运营与内容概览</div>
+                <div class="overview-list">
+                    <div class="overview-item">
+                        <div class="overview-label">交流反馈</div>
+                        <div class="overview-count" id="sysmsgCount">0</div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-label">探店文章</div>
+                        <div class="overview-count" id="blogCount">0</div>
+                    </div>
+                    <div class="overview-item">
+                        <div class="overview-label">文章分类</div>
+                        <div class="overview-count" id="btypeCount">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 商家运营横向对比（全宽）：与下方「经营分析」中日 GMV 趋势互补，此处专注店铺间排名对比 -->
+        <div class="chart-row chart-row--compare-full">
+            <div class="chart-card chart-card--compare">
+                <div class="compare-panel-head">
+                    <div class="compare-panel-title">
+                        <div class="cph-icon" aria-hidden="true">📊</div>
+                        <div>
+                            <div class="cph-main">商家运营横向对比</div>
+                            <div class="cph-desc">柱色深浅对应该指标高低；日度成交走势请在下方「经营分析 → GMV 趋势」查看。</div>
+                        </div>
+                    </div>
+                    <div class="compare-summary-strip" id="cmp_summary_strip"></div>
+                </div>
+                <div class="compare-toolbar layui-form">
+                    <div class="ct-left">
+                        <select id="cmp_metric" class="layui-select">
+                            <option value="replayCount" selected>评价数</option>
+                            <option value="avgReplayPf">平均评分</option>
+                            <option value="totalSales">销量(总)</option>
+                            <option value="goodCount">商品数</option>
+                            <option value="blogCount">内容数(文章)</option>
+                            <option value="orderGmv">订单GMV(元)</option>
+                            <option value="orderCnt">订单数</option>
+                        </select>
+                        <select id="cmp_rank" class="layui-select">
+                            <option value="top" selected>Top</option>
+                            <option value="bottom">Bottom</option>
+                        </select>
+                        <select id="cmp_limit" class="layui-select">
+                            <option value="10" selected>10家</option>
+                            <option value="20">20家</option>
+                            <option value="50">50家</option>
+                        </select>
+                    </div>
+                    <div class="ct-right">
+                        <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" onclick="applyCompare()">应用</button>
+                    </div>
+                </div>
+                <div class="compare-split">
+                    <div class="compare-split-chart">
+                        <div class="shop-compare-chart-wrap">
+                            <div class="chart-body" id="baseChart"></div>
+                        </div>
+                    </div>
+                    <div class="compare-split-side">
+                        <div class="cmp-side-title">榜单速览</div>
+                        <div id="cmp_side_insight"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 五大分析域：经营 / 用户 / 商家 / 口碑服务 / 活动 -->
+        <div class="domain-tabs layui-tab layui-tab-brief" lay-filter="domainTabs">
+            <ul class="layui-tab-title">
+                <li class="layui-this">经营分析</li>
+                <li>用户分析</li>
+                <li>商家分析</li>
+                <li>口碑服务</li>
+                <li>活动分析</li>
+            </ul>
+            <div class="layui-tab-content" style="padding: 0;">
+                <div class="layui-tab-item layui-show">
+                    <div class="domain-panel">
+                        <div class="chart-title">
+                            <span>经营分析（交易）</span>
+                            <span class="chart-subtitle">GMV、订单量、客单价、退款等（按筛选范围）</span>
+                        </div>
+                        <div class="domain-kpis">
+                            <div class="mini-kpi"><div class="k">GMV（元）</div><div class="v" id="kpi_gmv">-</div></div>
+                            <div class="mini-kpi"><div class="k">订单数</div><div class="v" id="kpi_orders">-</div></div>
+                            <div class="mini-kpi"><div class="k">客单价（元）</div><div class="v" id="kpi_aov">-</div></div>
+                            <div class="mini-kpi"><div class="k">退款金额（元）</div><div class="v" id="kpi_refund">-</div></div>
+                        </div>
+                        <div class="chart-row" style="margin-top: 12px;">
+                            <div class="chart-card">
+                                <div class="chart-title">
+                                    <span>GMV 趋势</span>
+                                    <span class="chart-subtitle"><span class="drill" onclick="openDrill('biz')">深度钻取：经营与交易</span></span>
+                                </div>
+                                <div class="chart-body" id="bizGmvTrend"></div>
+                            </div>
+                            <div class="chart-card">
+                                <div class="chart-title">
+                                    <span>商品销售榜（Top10）</span>
+                                    <span class="chart-subtitle"><span class="drill" onclick="openDrill('goods')">深度钻取：商品与结构</span></span>
+                                </div>
+                                <div class="chart-body" id="bizGoodTop"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-tab-item">
+                    <div class="domain-panel">
+                        <div class="chart-title">
+                            <span>用户分析（增长与留存）</span>
+<!--                            <span class="chart-subtitle">当前项目用户表无注册时间字段时，提供结构分布与交易活跃替代指标</span>-->
+                        </div>
+                        <div class="domain-kpis">
+                            <div class="mini-kpi"><div class="k">下单用户数（去重）</div><div class="v" id="kpi_user_total">-</div></div>
+                            <div class="mini-kpi"><div class="k">平台角色数</div><div class="v" id="kpi_user_role_cnt">-</div></div>
+                            <div class="mini-kpi"><div class="k">近N天有交易的订单数</div><div class="v" id="kpi_active_orders">-</div></div>
+                            <div class="mini-kpi"><div class="k">近N天 GMV（元）</div><div class="v" id="kpi_active_gmv">-</div></div>
+                        </div>
+                        <div class="chart-row" style="margin-top: 12px;">
+                            <div class="chart-card">
+                                <div class="chart-title"><span>下单用户角色分布</span><span class="chart-subtitle">仅统计当前筛选内有订单的用户 · <span class="drill" onclick="openDrill('user')">深度钻取：用户与活跃</span></span></div>
+                                <div class="chart-body" id="userRolePie"></div>
+                            </div>
+                            <div class="chart-card">
+                                <div class="chart-title"><span>近N天交易额（按天）</span><span class="chart-subtitle">从订单表聚合（替代活跃趋势）</span></div>
+                                <div class="chart-body" id="userGmvByDay"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-tab-item">
+                    <div class="domain-panel">
+                        <div class="chart-title">
+                            <span>商家分析（供给质量）</span>
+                            <span class="chart-subtitle">入驻、审核状态、评分分布、低评分预警</span>
+                        </div>
+                        <div class="domain-kpis">
+                            <div class="mini-kpi"><div class="k">商家数</div><div class="v" id="kpi_shop_total">-</div></div>
+                            <div class="mini-kpi"><div class="k">待审核商家</div><div class="v" id="kpi_shop_pending">-</div></div>
+                            <div class="mini-kpi"><div class="k">低评分商家（<4）</div><div class="v" id="kpi_shop_low">-</div></div>
+                            <div class="mini-kpi"><div class="k">平均评分</div><div class="v" id="kpi_shop_avgpf">-</div></div>
+                        </div>
+                        <div class="chart-row" style="margin-top: 12px;">
+                            <div class="chart-card">
+                                <div class="chart-title"><span>审核状态分布</span><span class="chart-subtitle"><span class="drill" onclick="openDrill('shop')">深度钻取：商家供给</span></span></div>
+                                <div class="chart-body" id="shopAuditPie"></div>
+                            </div>
+                            <div class="chart-card">
+                                <div class="chart-title"><span>评分分布（柱状）</span><span class="chart-subtitle">按 1~5 分桶</span></div>
+                                <div class="chart-body" id="shopPfHist"></div>
+                            </div>
+                        </div>
+                        <div class="chart-title" style="margin-top: 16px;">商家运营榜（点击查看该商家详细运营）</div>
+                        <div class="shop-rank-table" id="shopRankTable">
+                            <div class="compare-toolbar layui-form" style="margin-top: 8px;">
+                                <div class="ct-left">
+                                    <select id="tbl_audit" class="layui-select">
+                                        <option value="" selected>全部审核状态</option>
+                                    </select>
+                                    <select id="tbl_sort" class="layui-select">
+                                        <option value="replayCount_desc" selected>按评价数↓</option>
+                                        <option value="replayCount_asc">按评价数↑</option>
+                                        <option value="avgReplayPf_desc">按评分↓</option>
+                                        <option value="avgReplayPf_asc">按评分↑</option>
+                                        <option value="totalSales_desc">按销量↓</option>
+                                        <option value="totalSales_asc">按销量↑</option>
+                                        <option value="goodCount_desc">按商品数↓</option>
+                                        <option value="goodCount_asc">按商品数↑</option>
+                                        <option value="blogCount_desc">按文章数↓</option>
+                                        <option value="blogCount_asc">按文章数↑</option>
+                                        <option value="orderGmv_desc">按订单GMV↓</option>
+                                        <option value="orderGmv_asc">按订单GMV↑</option>
+                                        <option value="orderCnt_desc">按订单数↓</option>
+                                        <option value="orderCnt_asc">按订单数↑</option>
+                                    </select>
+                                    <span class="hint">可排序/筛选/分页，适配千级商家</span>
+                                </div>
+                                <div class="ct-right"></div>
+                            </div>
+                            <table id="shopRankLayTable" lay-filter="shopRankLayTable"></table>
+                            <div id="shopRankPager" style="margin-top: 10px; text-align:right;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-tab-item">
+                    <div class="domain-panel">
+                        <div class="chart-title">
+                            <span>口碑与服务（评价 / 申诉 / 工单替代）</span>
+                            <span class="chart-subtitle">评价评分趋势、申诉待处理量、差评占比</span>
+                        </div>
+                        <div class="domain-kpis">
+                            <div class="mini-kpi"><div class="k">评价总数</div><div class="v" id="kpi_replay_total">-</div></div>
+                            <div class="mini-kpi"><div class="k">平均评分</div><div class="v" id="kpi_replay_avgpf">-</div></div>
+                            <div class="mini-kpi"><div class="k">差评量（≤2）</div><div class="v" id="kpi_replay_bad">-</div></div>
+                            <div class="mini-kpi"><div class="k">待处理申诉</div><div class="v" id="kpi_appeal_pending2">-</div></div>
+                        </div>
+                        <div class="chart-row" style="margin-top: 12px;">
+                            <div class="chart-card">
+                                <div class="chart-title"><span>近N天评分趋势</span><span class="chart-subtitle">按天平均分</span></div>
+                                <div class="chart-body" id="replayPfTrend"></div>
+                            </div>
+                            <div class="chart-card">
+                                <div class="chart-title"><span>申诉状态分布</span><span class="chart-subtitle"><span class="drill" onclick="openDrill('replay')">深度钻取：口碑与申诉</span></span></div>
+                                <div class="chart-body" id="appealStatePie"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-tab-item">
+                    <div class="domain-panel">
+                        <div class="chart-title">
+                            <span>活动分析（运营）</span>
+                            <span class="chart-subtitle">优惠券/活动数量、预算/总额、效果榜（用交易数据近似）</span>
+                        </div>
+                        <div class="domain-kpis">
+                            <div class="mini-kpi"><div class="k">活动/优惠券数量</div><div class="v" id="kpi_youhui_cnt">-</div></div>
+                            <div class="mini-kpi"><div class="k">系统消息（条）</div><div class="v" id="kpi_notice_cnt2">-</div></div>
+                            <div class="mini-kpi"><div class="k">近N天 GMV（元）</div><div class="v" id="kpi_act_gmv">-</div></div>
+                            <div class="mini-kpi"><div class="k">内容产出（文章）</div><div class="v" id="kpi_blog_cnt2">-</div></div>
+                        </div>
+                        <div class="chart-row" style="margin-top: 12px;">
+                            <div class="chart-card">
+                                <div class="chart-title"><span>优惠券/活动按日新增</span><span class="chart-subtitle"><span class="drill" onclick="openDrill('activity')">深度钻取：活动与内容</span></span></div>
+                                <div class="chart-body" id="actTrend"></div>
+                            </div>
+                            <div class="chart-card">
+                                <div class="chart-title"><span>内容产出与系统消息（按日）</span><span class="chart-subtitle"><span class="drill" onclick="openDrill('activity')">深度钻取：内容运营</span></span></div>
+                                <div class="chart-body" id="contentTrend2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 全局统计数据，供图表复用
+    var metricCounts = {
+        user: 0,
+        type: 0,
+        good: 0,
+        shop: 0,
+        sysmsg: 0,
+        blog: 0,
+        btype: 0
+    };
+
+    var filterState = {
+        days: 30,
+        shopId: '',
+        shopName: ''
+    };
+
+    function safeNum(n){
+        var v = parseFloat(n);
+        if(isNaN(v)) return null;
+        return v;
+    }
+
+    function inLastDays(dateStr, days){
+        if(!dateStr) return false;
+        var ds = (dateStr+'').substr(0, 10);
+        var t = new Date(ds.replace(/-/g,'/')).getTime();
+        if(isNaN(t)) return false;
+        return (Date.now() - t) <= (days * 86400000);
+    }
+
+    function openInParent(href, title, icon, query){
+        if (query && typeof query === 'string' && query.length) {
+            href += (href.indexOf('?') >= 0 ? '&' : '?') + query.replace(/^\?/, '');
+        }
+        try {
+            if (window.parent && window.parent.layui && window.parent.layui.miniTab && window.parent.layui.miniTab.openNewTabByIframe) {
+                window.parent.layui.miniTab.openNewTabByIframe({
+                    href: href,
+                    title: title || '页面',
+                    icon: icon || 'fa fa-file-text',
+                });
+                return;
+            }
+        } catch (e) {}
+        window.location.href = href;
+    }
+
+    /** 调用服务端千帆，基于当前筛选天数与店铺生成平台运营简报（JSONP，120s 超时）；结果写入页内 #aiBriefPanel */
+    function runPlatformAiBrief(){
+        var days = filterState.days || parseInt($('#f_range').val() || '30', 10) || 30;
+        var sid = filterState.shopId || $('#f_shop').val() || '';
+        var $panel = $('#aiBriefPanel');
+        var $load = $('#aiBriefLoading');
+        var $body = $('#aiBriefBody');
+        var $facts = $('#aiBriefFacts');
+        $panel.css('display', 'block');
+        $load.show();
+        $body.text('');
+        $facts.empty();
+        try {
+            if (typeof layui !== 'undefined' && layui.layer) {
+                layui.layer.load(2, { shade: 0.15 });
+            }
+        } catch (e1) {}
+        try {
+            $panel[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (e2) {}
+        $.ajax({
+            type: 'GET',
+            url: clientUrl + 'aiOpsPlatformBriefJ',
+            dataType: 'jsonp',
+            jsonp: 'callback',
+            data: { days: days, sid: sid },
+            timeout: 120000,
+            success: function(res){
+                try {
+                    if (typeof layui !== 'undefined' && layui.layer) {
+                        layui.layer.closeAll('loading');
+                    }
+                } catch (e3) {}
+                $load.hide();
+                if (!res || !res.ok) {
+                    var err = (res && res.error) ? String(res.error) : '调用失败（返回异常）';
+                    $body.text('错误：' + err);
+                    try {
+                        if (typeof layui !== 'undefined' && layui.layer) {
+                            layui.layer.msg(err, { time: 4000 });
+                        }
+                    } catch (e4) {}
+                    return;
+                }
+                var txt = (res.text != null) ? String(res.text) : '';
+                $body.text(txt);
+                var f = res.facts;
+                if (f && typeof f === 'object') {
+                    var line = '数据依据（近 ' + (f.windowDays != null ? f.windowDays : days) + ' 天）· 订单 ' + (f.orderCountInWindow != null ? f.orderCountInWindow : '—')
+                        + ' · GMV ' + (f.gmvInWindow != null ? f.gmvInWindow : '—')
+                        + ' · 待付款单 ' + (f.pendingPayOrders != null ? f.pendingPayOrders : '—')
+                        + ' · 店铺 ' + (f.shopTotal != null ? f.shopTotal : '—')
+                        + ' · 低分<4：' + (f.shopsLowScoreUnder4 != null ? f.shopsLowScoreUnder4 : '—')
+                        + ' · 待审核：' + (f.shopsPendingAudit != null ? f.shopsPendingAudit : '—')
+                        + ' · SKU ' + (f.skuTotal != null ? f.skuTotal : '—')
+                        + ' · 待处理申诉 ' + (f.appealsPending != null ? f.appealsPending : '—');
+                    $facts.text(line);
+                }
+                try {
+                    if (typeof layui !== 'undefined' && layui.layer) {
+                        layui.layer.msg('简报已更新在下方', { time: 2000 });
+                    }
+                } catch (e5) {}
+            },
+            error: function(){
+                try {
+                    if (typeof layui !== 'undefined' && layui.layer) {
+                        layui.layer.closeAll('loading');
+                    }
+                } catch (e6) {}
+                $load.hide();
+                $body.text('请求超时或失败，请检查网络与千帆配置（qianfan_api_key）。');
+                try {
+                    if (typeof layui !== 'undefined' && layui.layer) {
+                        layui.layer.msg('请求失败', { time: 3000 });
+                    }
+                } catch (e7) {}
+            }
+        });
+    }
+
+    function formatNdateBatchAi() {
+        var d = new Date();
+        function p(n) { return (n < 10 ? '0' : '') + n; }
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+
+    /**
+     * 依次对每家店铺：千帆 mode=decision → 写入 sysmsg（biztype admin_ai_ops_decision）。
+     * 仅非商家账号显示入口；店铺多时仅调千帆就会较慢，请勿关页。
+     */
+    function runBatchShopAiDecision() {
+        try {
+            if (typeof userinfo !== 'undefined' && userinfo && String(userinfo.roletype) === '3') {
+                layui.layer.msg('当前账号无权限');
+                return;
+            }
+        } catch (e0) {}
+        layui.layer.confirm(
+            '将对<strong>全平台每一家店铺</strong>依次调用千帆生成「运营决策建议」并推送到各店商家小程序系统消息。店铺较多时可能需数分钟，请勿关闭本页。是否继续？',
+            { icon: 3, title: '批量 AI 决策推送', btn: ['开始执行', '取消'] },
+            function (idx) {
+                layui.layer.close(idx);
+                ajaxCallback1('list', { table: 'shop' }, function (shops) {
+                    shops = shops || [];
+                    var list = shops.filter(function (s) { return s != null && s.id != null && s.id !== ''; });
+                    if (!list.length) {
+                        layui.layer.msg('没有店铺数据');
+                        return;
+                    }
+                    var cur = 0;
+                    var ok = 0;
+                    var fail = 0;
+                    var total = list.length;
+                    var loadIdx = layui.layer.load(2, { shade: 0.12 });
+                    function finishBatch() {
+                        layui.layer.close(loadIdx);
+                        layui.layer.alert('批量结束：成功推送 <b>' + ok + '</b> 家，失败 <b>' + fail + '</b> 家（共 ' + total + ' 家）。');
+                    }
+                    function runOne() {
+                        if (cur >= total) {
+                            finishBatch();
+                            return;
+                        }
+                        var s = list[cur];
+                        var id = parseInt(s.id, 10);
+                        if (isNaN(id)) {
+                            fail++;
+                            cur++;
+                            runOne();
+                            return;
+                        }
+                        var name = (s.sname || s.shop || '') + '';
+                        cur++;
+                        layui.layer.msg('处理中 ' + cur + ' / ' + total + '：' + (name || ('#' + id)), { time: 60000 });
+                        $.ajax({
+                            type: 'GET',
+                            url: clientUrl + 'aiOpsShopAdviceJ',
+                            dataType: 'jsonp',
+                            jsonp: 'callback',
+                            data: { sid: id, days: 30, mode: 'decision', digest: '' },
+                            timeout: 120000,
+                            success: function (res) {
+                                if (!res || !res.ok) {
+                                    fail++;
+                                    runOne();
+                                    return;
+                                }
+                                var body = (res.text != null) ? String(res.text).trim() : '';
+                                if (!body) {
+                                    fail++;
+                                    runOne();
+                                    return;
+                                }
+                                var head = '【平台运营决策参考】店铺：' + name + '（ID ' + id + '）\n\n';
+                                var note = head + body;
+                                if (note.length > 8000) {
+                                    note = note.slice(0, 7997) + '...';
+                                }
+                                var payload = {
+                                    table: 'sysmsg',
+                                    title: '平台运营决策建议',
+                                    note: note,
+                                    ndate: formatNdateBatchAi(),
+                                    type: 'system',
+                                    sid: id,
+                                    shop: name,
+                                    state: 1,
+                                    biztype: 'admin_ai_ops_decision'
+                                };
+                                ajaxSavePost(payload, function (data) {
+                                    if (data == null) {
+                                        fail++;
+                                    } else {
+                                        ok++;
+                                    }
+                                    runOne();
+                                }, true);
+                            },
+                            error: function () {
+                                fail++;
+                                runOne();
+                            }
+                        });
+                    }
+                    runOne();
+                }, true);
+            }
+        );
+    }
+
+    // 商家运营横向对比数据：全量 + 当前视图
+    var shopRankDataAll = [];
+    var shopRankData = [];
+    var compareState = {
+        metric: 'replayCount',
+        rank: 'top',
+        limit: 10
+    };
+
+    function metricLabel(k){
+        if(k==='replayCount') return '评价数';
+        if(k==='avgReplayPf') return '平均评分';
+        if(k==='totalSales') return '销量(总)';
+        if(k==='goodCount') return '商品数';
+        if(k==='blogCount') return '内容数(文章)';
+        if(k==='orderGmv') return '订单GMV(元)';
+        if(k==='orderCnt') return '订单数';
+        return '指标';
+    }
+
+    function applyCompare(){
+        compareState.metric = ($('#cmp_metric').val() || 'replayCount');
+        compareState.rank = ($('#cmp_rank').val() || 'top');
+        compareState.limit = parseInt($('#cmp_limit').val() || '10', 10) || 10;
+        renderCharts();
+    }
+
+    function formatCmpValue(metric, v) {
+        if (v === null || typeof v === 'undefined' || (typeof v === 'number' && isNaN(v))) return '-';
+        var n = Number(v);
+        if (metric === 'avgReplayPf') return (Math.round(n * 100) / 100).toFixed(2);
+        if (metric === 'orderGmv') return (Math.round(n * 100) / 100).toFixed(2);
+        if (Math.abs(n - Math.round(n)) < 1e-6) return String(Math.round(n));
+        return (Math.round(n * 100) / 100).toFixed(2);
+    }
+
+    function updateCompareSummaryStrip(metric, rank, limit, values) {
+        var $s = $('#cmp_summary_strip');
+        if (!$s.length) return;
+        var ml = metricLabel(metric);
+        var rk = rank === 'bottom' ? 'Bottom ' : 'Top ';
+        if (!values || !values.length) {
+            $s.html('<span class="cssp-item">' + rk + '<b>' + limit + '</b>家 · <b>' + ml + '</b> · 暂无数据</span>');
+            return;
+        }
+        var mx = Math.max.apply(null, values);
+        var mn = Math.min.apply(null, values);
+        var sum = values.reduce(function (a, b) { return a + b; }, 0);
+        var avg = sum / values.length;
+        $s.html(
+            '<span class="cssp-item">' + rk + '<b>' + limit + '</b>家 · <b>' + ml + '</b></span>' +
+            '<span class="cssp-item">最高 <b>' + formatCmpValue(metric, mx) + '</b></span>' +
+            '<span class="cssp-item">最低 <b>' + formatCmpValue(metric, mn) + '</b></span>' +
+            '<span class="cssp-item">均值 <b>' + formatCmpValue(metric, avg) + '</b></span>'
+        );
+    }
+
+    function updateCompareSideInsight(metric) {
+        var $el = $('#cmp_side_insight');
+        if (!$el.length) return;
+        var top3 = (shopRankData || []).slice(0, 3);
+        if (!top3.length) {
+            $el.html('<div class="cmp-side-empty">暂无数据</div>');
+            return;
+        }
+        var medals = ['🥇', '🥈', '🥉'];
+        var ml = metricLabel(metric);
+        var html = '';
+        top3.forEach(function (s, i) {
+            var v = safeNum(s[metric]);
+            if (v === null) v = 0;
+            var nm = (s.sname || ('#' + s.id)) + '';
+            nm = nm.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+            html += '<div class="cmp-side-card" data-sid="' + (s.id || '') + '" data-sname="' + encodeURIComponent(s.sname || '') + '">';
+            html += '<div class="cmp-side-rank">' + (medals[i] || ('#' + (i + 1))) + '</div>';
+            html += '<div class="cmp-side-name">' + nm + '</div>';
+            html += '<div class="cmp-side-val">' + formatCmpValue(metric, v) + '</div>';
+            html += '<div class="cmp-side-hint">' + ml + ' · 点击查看</div>';
+            html += '</div>';
+        });
+        $el.html(html);
+        $el.off('click').on('click', '.cmp-side-card', function () {
+            var sid = $(this).attr('data-sid');
+            var enc = $(this).attr('data-sname');
+            var sname = '';
+            try { sname = decodeURIComponent(enc || ''); } catch (e) {}
+            openShopDetail(sid, sname);
+        });
+    }
+
+    function openShopDetail(sid, sname) {
+        var url = 'dashbord-shop.html?sid=' + (sid || '') + '&sname=' + encodeURIComponent(sname || '');
+        try {
+            if (window.parent && window.parent.layui && window.parent.layui.miniTab && window.parent.layui.miniTab.openNewTabByIframe) {
+                window.parent.layui.miniTab.openNewTabByIframe({
+                    href: url,
+                    title: '商家运营：' + (sname || ('#' + sid)),
+                    icon: 'fa fa-bar-chart'
+                });
+                return;
+            }
+        } catch (e) {}
+        window.location.href = url;
+    }
+
+    var __dashResizeBound = false;
+    function bindDashResizeOnce(){
+        if(__dashResizeBound) return;
+        __dashResizeBound = true;
+        window.addEventListener('resize', function(){
+            resizeAllDashboardCharts();
+        });
+    }
+
+    /** Tab 内隐藏的图表初次宽高为 0，需在渲染后及切换 Tab 时 resize */
+    function resizeAllDashboardCharts(){
+        var ids = ['baseChart','bizGmvTrend','bizGoodTop','userRolePie','userGmvByDay','shopAuditPie','shopPfHist','replayPfTrend','appealStatePie','actTrend','contentTrend2'];
+        ids.forEach(function(id){
+            var el = document.getElementById(id);
+            if(!el) return;
+            var c = echarts.getInstanceByDom(el);
+            if(c) try { c.resize(); } catch(e) {}
+        });
+    }
+
+    function renderCharts() {
+        var baseDom = document.getElementById('baseChart');
+        if (!baseDom) {
+            return;
+        }
+
+        var baseChart = echarts.getInstanceByDom(baseDom) || echarts.init(baseDom);
+        bindDashResizeOnce();
+
+        // 商家运营横向对比：Top/Bottom N（可切换维度）
+        var metric = compareState.metric || 'replayCount';
+        var rank = compareState.rank || 'top';
+        var limit = compareState.limit || 10;
+        var arr = (shopRankDataAll || []).slice();
+        arr.sort(function(a,b){
+            var av = safeNum(a[metric]); if(av===null) av = 0;
+            var bv = safeNum(b[metric]); if(bv===null) bv = 0;
+            return (rank === 'bottom') ? (av - bv) : (bv - av);
+        });
+        shopRankData = arr.slice(0, limit);
+        var names = shopRankData.map(function(s){ return (s.sname || ('#'+s.id)) + ''; });
+        var values = shopRankData.map(function(s){ var v = safeNum(s[metric]); return v===null ? 0 : v; });
+        /* 横向条形图：店名在纵轴横向排布；条数多时增高画布，在 .shop-compare-chart-wrap 内滚动 */
+        var rowPx = 28;
+        var chartInnerH = Math.max(220, names.length * rowPx + 72);
+        baseDom.style.height = chartInnerH + 'px';
+        baseDom.style.minHeight = chartInnerH + 'px';
+        var vmin = values.length ? Math.min.apply(null, values) : 0;
+        var vmax = values.length ? Math.max.apply(null, values) : 0;
+        var useVm = values.length > 1 && vmax > vmin;
+        var barSeries = {
+            name: metricLabel(metric),
+            type: 'bar',
+            data: values,
+            barMaxWidth: 22,
+            barCategoryGap: '40%',
+            itemStyle: {
+                borderRadius: [0, 6, 6, 0]
+            }
+        };
+        if (!useVm) {
+            barSeries.itemStyle.color = new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                { offset: 0, color: '#60a5fa' },
+                { offset: 1, color: '#3b82f6' }
+            ]);
+        }
+        var baseOption = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' },
+                formatter: function(params) {
+                    var p0 = params && params[0];
+                    var idx = p0 ? p0.dataIndex : 0;
+                    var s = shopRankData[idx];
+                    if (!s) return '';
+                    var tip = [];
+                    tip.push((s.sname || ''));
+                    tip.push(metricLabel(metric) + '：' + (safeNum(s[metric])===null ? 0 : s[metric]));
+                    tip.push('销量：' + (s.totalSales || 0));
+                    tip.push('订单GMV：' + (s.orderGmv != null ? s.orderGmv : 0));
+                    tip.push('订单数：' + (s.orderCnt || 0));
+                    tip.push('评价：' + (s.replayCount || 0));
+                    tip.push('评分：' + (s.avgReplayPf || '-'));
+                    tip.push('点击查看该商家详细运营');
+                    return tip.join('<br/>');
+                }
+            },
+            grid: {
+                left: 8,
+                right: 24,
+                top: 10,
+                bottom: 10,
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                axisLine: { lineStyle: { color: '#d1d5db' } },
+                splitLine: { lineStyle: { color: '#e5e7eb' } },
+                axisLabel: { color: '#6b7280' }
+            },
+            yAxis: {
+                type: 'category',
+                data: names,
+                inverse: true,
+                axisLine: { show: false },
+                axisTick: { show: false },
+                axisLabel: {
+                    color: '#374151',
+                    fontSize: 11,
+                    width: 152,
+                    overflow: 'truncate',
+                    ellipsis: '…'
+                }
+            },
+            series: [barSeries]
+        };
+        if (useVm) {
+            baseOption.visualMap = {
+                show: false,
+                min: vmin,
+                max: vmax,
+                dimension: 0,
+                inRange: { color: ['#bfdbfe', '#1d4ed8'] },
+                seriesIndex: 0
+            };
+        }
+        baseChart.off('click');
+        baseChart.on('click', 'series.bar', function(params) {
+            var s = shopRankData[params.dataIndex];
+            if (s) openShopDetail(s.id, s.sname);
+        });
+        baseChart.setOption(baseOption, true);
+        updateCompareSummaryStrip(metric, rank, limit, values);
+        updateCompareSideInsight(metric);
+        setTimeout(function(){ resizeAllDashboardCharts(); }, 60);
+    }
+
+    function renderShopRankTable() {
+        if (!window.layui) return;
+        layui.use(['table','laypage','form'], function(){
+            var table = layui.table;
+            var laypage = layui.laypage;
+            var form = layui.form;
+
+            // 审核状态筛选项（动态生成）
+            var stMap = {};
+            (shopRankDataAll || []).forEach(function(s){
+                var st = (s.statecn || '未知') + '';
+                stMap[st] = 1;
+            });
+            var stOpts = '<option value=\"\" selected>全部审核状态</option>';
+            Object.keys(stMap).sort().forEach(function(k){
+                stOpts += '<option value=\"'+k+'\">'+k+'</option>';
+            });
+            $('#tbl_audit').html(stOpts);
+            form.render('select');
+
+            function safe0(v){
+                var n = safeNum(v);
+                return n === null ? 0 : n;
+            }
+
+            function getFiltered(){
+                var st = $('#tbl_audit').val() || '';
+                var srt = ($('#tbl_sort').val() || 'replayCount_desc').split('_');
+                var key = srt[0];
+                var dir = srt[1] || 'desc';
+                var list = (shopRankDataAll || []).slice();
+                if (st) list = list.filter(function(s){ return (s.statecn || '未知') === st; });
+                list.sort(function(a,b){
+                    var av = safe0(a[key]);
+                    var bv = safe0(b[key]);
+                    return dir === 'asc' ? (av - bv) : (bv - av);
+                });
+                return list;
+            }
+
+            var all = getFiltered();
+            var pageSize = 10;
+
+            function renderPage(curr){
+                curr = curr || 1;
+                var start = (curr - 1) * pageSize;
+                var pageData = all.slice(start, start + pageSize);
+                table.render({
+                    elem: '#shopRankLayTable',
+                    data: pageData,
+                    limit: pageSize,
+                    cols: [[
+                        {field:'sname', title:'商家', minWidth: 180, templet: function(d){
+                            var sn = (d.sname || '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+                            return '<span class="ds-link" data-sid="'+d.id+'" data-sname="'+sn+'" onclick="openShopDetail(this.dataset.sid,this.dataset.sname)">'+(d.sname||'')+'</span>';
+                        }},
+                        {field:'statecn', title:'审核状态', width: 110},
+                        {field:'goodCount', title:'商品数', width: 90, sort: true},
+                        {field:'totalSales', title:'销量(总)', width: 100, sort: true},
+                        {field:'replayCount', title:'评价数', width: 90, sort: true},
+                        {field:'avgReplayPf', title:'评分', width: 80, sort: true, templet: function(d){ return d.avgReplayPf || '-'; }},
+                        {field:'blogCount', title:'文章数', width: 90, sort: true},
+                        {field:'orderGmv', title:'订单GMV', width: 100, sort: true, templet: function(d){ return d.orderGmv != null ? (Math.round(d.orderGmv*100)/100) : '0'; }},
+                        {field:'orderCnt', title:'订单数', width: 90, sort: true},
+                        {title:'操作', width: 100, templet: function(d){
+                            var sn = (d.sname || '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+                            return '<a class="shop-detail-link" href="javascript:;" data-sid="'+d.id+'" data-sname="'+sn+'" onclick="openShopDetail(this.dataset.sid,this.dataset.sname)">查看运营</a>';
+                        }}
+                    ]],
+                    even: true
+                });
+            }
+
+            function renderPager(){
+                laypage.render({
+                    elem: 'shopRankPager',
+                    count: all.length,
+                    limit: pageSize,
+                    curr: 1,
+                    layout: ['count','prev','page','next','skip'],
+                    jump: function(obj, first){
+                        if(first) renderPage(1);
+                        else renderPage(obj.curr);
+                    }
+                });
+            }
+
+            $('#tbl_audit').off('change').on('change', function(){
+                all = getFiltered();
+                renderPager();
+                renderPage(1);
+            });
+            $('#tbl_sort').off('change').on('change', function(){
+                all = getFiltered();
+                renderPager();
+                renderPage(1);
+            });
+
+            renderPager();
+            renderPage(1);
+        });
+    }
+
+    function renderDomainCharts(payload){
+        payload = payload || {};
+
+        // 经营：GMV 趋势 + 商品销售榜
+        var gmvDom = document.getElementById('bizGmvTrend');
+        var topDom = document.getElementById('bizGoodTop');
+        if(gmvDom){
+            var gmvChart = echarts.getInstanceByDom(gmvDom) || echarts.init(gmvDom);
+            gmvChart.setOption({
+                tooltip: { trigger: 'axis' },
+                grid: { left: 40, right: 20, top: 20, bottom: 50 },
+                xAxis: { type:'category', data: payload.dayLabels || [], axisLabel:{ rotate: 40 } },
+                yAxis: { type:'value' },
+                series: [{ name:'GMV', type:'line', smooth:true, data: payload.gmvByDay || [], itemStyle:{ color:'#ff6a00' } }]
+            });
+        }
+        if(topDom){
+            var topChart = echarts.getInstanceByDom(topDom) || echarts.init(topDom);
+            topChart.setOption({
+                tooltip: { trigger:'axis' },
+                grid: { left: 60, right: 20, top: 20, bottom: 70 },
+                xAxis: { type:'category', data: payload.goodTopNames || [], axisLabel:{ rotate: 40, interval: 0 } },
+                yAxis: { type:'value' },
+                series: [{ name:'销售额', type:'bar', data: payload.goodTopValues || [], barWidth: 18, itemStyle:{ borderRadius:[6,6,0,0], color:'#10b981' } }]
+            });
+        }
+
+        // 用户：角色分布 + 交易额按天（替代活跃趋势）
+        var roleDom = document.getElementById('userRolePie');
+        var userGmvDom = document.getElementById('userGmvByDay');
+        if(roleDom){
+            var roleChart = echarts.getInstanceByDom(roleDom) || echarts.init(roleDom);
+            roleChart.setOption({
+                tooltip: { trigger:'item' },
+                legend: { bottom: 0 },
+                series: [{
+                    type:'pie',
+                    radius:['35%','60%'],
+                    data: payload.rolePie || [],
+                    label: { formatter: '{b}: {c}' }
+                }]
+            });
+        }
+        if(userGmvDom){
+            var ugChart = echarts.getInstanceByDom(userGmvDom) || echarts.init(userGmvDom);
+            ugChart.setOption({
+                tooltip: { trigger:'axis' },
+                grid: { left: 40, right: 20, top: 20, bottom: 50 },
+                xAxis: { type:'category', data: payload.dayLabels || [], axisLabel:{ rotate: 40 } },
+                yAxis: { type:'value' },
+                series: [{ name:'GMV', type:'bar', data: payload.gmvByDay || [], barWidth: 18, itemStyle:{ color:'#6366f1', borderRadius:[6,6,0,0] } }]
+            });
+        }
+
+        // 商家：审核状态 + 评分分布
+        var auditDom = document.getElementById('shopAuditPie');
+        var pfDom = document.getElementById('shopPfHist');
+        if(auditDom){
+            var aChart = echarts.getInstanceByDom(auditDom) || echarts.init(auditDom);
+            aChart.setOption({
+                tooltip: { trigger:'item' },
+                legend: { bottom: 0 },
+                series: [{ type:'pie', radius:['35%','60%'], data: payload.shopAuditPie || [] }]
+            });
+        }
+        if(pfDom){
+            var pfChart = echarts.getInstanceByDom(pfDom) || echarts.init(pfDom);
+            pfChart.setOption({
+                tooltip: { trigger:'axis' },
+                grid: { left: 40, right: 20, top: 20, bottom: 40 },
+                xAxis: { type:'category', data: ['1分','2分','3分','4分','5分'] },
+                yAxis: { type:'value' },
+                series: [{ type:'bar', data: payload.shopPfHist || [0,0,0,0,0], barWidth: 22, itemStyle:{ color:'#f97316', borderRadius:[6,6,0,0] } }]
+            });
+        }
+
+        // 口碑：评分趋势 + 申诉状态
+        var replayTrendDom = document.getElementById('replayPfTrend');
+        var appealPieDom = document.getElementById('appealStatePie');
+        if(replayTrendDom){
+            var rpChart = echarts.getInstanceByDom(replayTrendDom) || echarts.init(replayTrendDom);
+            rpChart.setOption({
+                tooltip: { trigger:'axis' },
+                grid: { left: 40, right: 20, top: 20, bottom: 50 },
+                xAxis: { type:'category', data: payload.dayLabels || [], axisLabel:{ rotate: 40 } },
+                yAxis: { type:'value', min: 0, max: 5 },
+                series: [{ name:'平均评分', type:'line', smooth:true, data: payload.pfByDay || [], itemStyle:{ color:'#10b981' } }]
+            });
+        }
+        if(appealPieDom){
+            var apChart = echarts.getInstanceByDom(appealPieDom) || echarts.init(appealPieDom);
+            apChart.setOption({
+                tooltip: { trigger:'item' },
+                legend: { bottom: 0 },
+                series: [{ type:'pie', radius:['35%','60%'], data: payload.appealStatePie || [] }]
+            });
+        }
+
+        // 活动：占位趋势（用柱状填充，后续可替换为真实活动时间字段聚合）
+        var actDom = document.getElementById('actTrend');
+        var c2Dom = document.getElementById('contentTrend2');
+        if(actDom){
+            var ac = echarts.getInstanceByDom(actDom) || echarts.init(actDom);
+            ac.setOption({
+                tooltip: { trigger:'axis' },
+                grid: { left: 40, right: 20, top: 20, bottom: 50 },
+                xAxis: { type:'category', data: payload.dayLabels || [], axisLabel:{ rotate: 40 } },
+                yAxis: { type:'value' },
+                series: [{ name:'优惠券/活动条数', type:'bar', data: payload.actByDay || [], barWidth: 18, itemStyle:{ color:'#8b5cf6', borderRadius:[6,6,0,0] } }]
+            });
+        }
+        if(c2Dom){
+            var cc = echarts.getInstanceByDom(c2Dom) || echarts.init(c2Dom);
+            cc.setOption({
+                tooltip: { trigger:'axis' },
+                legend: { data:['探店文章','系统消息'], bottom: 0 },
+                grid: { left: 40, right: 20, top: 28, bottom: 50 },
+                xAxis: { type:'category', data: payload.dayLabels || [], axisLabel:{ rotate: 40 } },
+                yAxis: { type:'value' },
+                series: [
+                    { name:'探店文章', type:'line', smooth:true, data: payload.blogByDay || [], itemStyle:{ color:'#0ea5e9' } },
+                    { name:'系统消息', type:'line', smooth:true, data: payload.sysmsgByDay || [], itemStyle:{ color:'#f97316' } }
+                ]
+            });
+        }
+
+        bindDashResizeOnce();
+        setTimeout(function(){ resizeAllDashboardCharts(); }, 50);
+        setTimeout(function(){ resizeAllDashboardCharts(); }, 250);
+    }
+
+    function buildDayLabels(days){
+        var nd = Date.now();
+        var labels = [];
+        for(var i=days-1;i>=0;i--){
+            labels.push(getNowDate(nd - 86400000*i));
+        }
+        return labels;
+    }
+
+    function renderFilterSelects(){
+        if(!window.layui) return;
+        layui.use(['form'], function(){
+            var form = layui.form;
+            form.render('select');
+        });
+    }
+
+    function populateShopFilter(shopList){
+        var $sel = $('#f_shop');
+        if(!$sel.length) return;
+        var preserved = filterState.shopId || '';
+        var html = '<option value="">全部店铺</option>';
+        (shopList || []).forEach(function(s){
+            html += '<option value="'+(s.id||'')+'">'+(s.sname || ('店铺#'+s.id))+'</option>';
+        });
+        $sel.html(html);
+        if(preserved) $sel.val(preserved);
+        renderFilterSelects();
+    }
+
+    function applyFilters(){
+        filterState.days = parseInt($('#f_range').val() || '30', 10) || 30;
+        filterState.shopId = $('#f_shop').val() || '';
+        filterState.shopName = $('#f_shop option:selected').text() || '';
+        refreshAllAnalytics();
+    }
+
+    function resetFilters(){
+        $('#f_range').val('30');
+        $('#f_shop').val('');
+        renderFilterSelects();
+        applyFilters();
+    }
+
+    function refreshAllAnalytics(){
+        var days = filterState.days || 30;
+        var labels = buildDayLabels(days);
+
+        // 统一拉取：含 bill（订单）用于 GMV、客单价、趋势与商品销售榜
+        var p = {};
+        var done = 0;
+        // 与下方 once(...) 调用个数一致：good/shop/replay/appeal/user/blog/youhui/sysmsg/bill/type/btype 共 11 路
+        var listFetchTotal = 11;
+        function once(k, loader){
+            loader(function(res){
+                p[k] = res || [];
+                done++;
+                if(done >= listFetchTotal){
+                    // 聚合计算并渲染
+                    var goods = p.good || [];
+                    var shops = p.shop || [];
+                    var replays = p.replay || [];
+                    var appeals = p.appeal || [];
+                    var users = p.user || [];
+                    var blogs = p.blog || [];
+                    var youhui = p.youhui || [];
+                    var sysmsg = p.sysmsg || [];
+                    var billsRaw = p.bill || [];
+
+                    function billInScope(b){
+                        if(!b) return false;
+                        if(filterState.shopId && String(b.sid||'') !== String(filterState.shopId)) return false;
+                        return inLastDays(b.ndate, days);
+                    }
+                    function isRevenueBill(b){
+                        var st = (b.statecn||'').trim();
+                        if(st === '待付款' || st === '已取消') return false;
+                        return billInScope(b);
+                    }
+                    function isRefundBill(b){
+                        var st = (b.statecn||'');
+                        return billInScope(b) && (st.indexOf('退') !== -1 || st === '退款');
+                    }
+                    var billsScoped = (billsRaw || []).filter(billInScope);
+                    var billsRev = billsRaw.filter(isRevenueBill);
+                    var refundBills = billsRaw.filter(isRefundBill);
+
+                    var allGoods = p.good || [];
+                    function goodById(gid){
+                        var g, i, gs = allGoods;
+                        for(i=0;i<gs.length;i++){
+                            g = gs[i];
+                            if(String(g.id) === String(gid)) return g;
+                        }
+                        return null;
+                    }
+                    function replayInTime(r){ return inLastDays(r.ndate, days); }
+                    function replayTargetShopId(r){
+                        var typ = r.type || 0;
+                        if(typ === 9) return String(r.pid || '');
+                        if(typ === 1){
+                            var g = goodById(r.pid);
+                            return g ? String(g.sid || '') : '';
+                        }
+                        return '';
+                    }
+                    function replayMatchesFilter(r){
+                        if(!replayInTime(r)) return false;
+                        if(filterState.shopId){
+                            return replayTargetShopId(r) === String(filterState.shopId);
+                        }
+                        return true;
+                    }
+                    replays = (p.replay || []).filter(replayMatchesFilter);
+
+                    if(filterState.shopId){
+                        var sidF = filterState.shopId + '';
+                        goods = goods.filter(function(g){ return ((g.sid || '') + '') === sidF; });
+                        shops = shops.filter(function(s){ return ((s.id || '') + '') === sidF; });
+                        appeals = appeals.filter(function(a){ return ((a.sid || '') + '') === sidF; });
+                        blogs = blogs.filter(function(b){ return ((b.sid || '') + '') === sidF; });
+                    }
+                    blogs = (blogs || []).filter(function(b){ return inLastDays(b.ndate, days); });
+                    appeals = (appeals || []).filter(function(a){ return !a.ndate || inLastDays(a.ndate, days); });
+
+                    // 商家运营横向对比：仅对当前筛选范围内的店铺/商品/评价/文章/订单聚合
+                    var shopMap = {};
+                    (shops || []).forEach(function(s){
+                        shopMap[s.id] = {
+                            id: s.id,
+                            sname: s.sname || ('店铺#'+s.id),
+                            statecn: s.statecn || '未知',
+                            goodCount: 0,
+                            totalSales: 0,
+                            orderGmv: 0,
+                            orderCnt: 0,
+                            replayCount: 0,
+                            pfSum: 0,
+                            pfCnt: 0,
+                            avgReplayPf: '-',
+                            blogCount: 0
+                        };
+                    });
+                    (goods || []).forEach(function(g){
+                        var sid = (g.sid || '').toString();
+                        if(shopMap[sid]){
+                            shopMap[sid].goodCount++;
+                            var xl = safeNum(g.xl);
+                            shopMap[sid].totalSales += (xl === null ? 0 : xl);
+                        }
+                    });
+                    (p.replay || []).forEach(function(r){
+                        if(!replayInTime(r)) return;
+                        var sidR = replayTargetShopId(r);
+                        if(!sidR || !shopMap[sidR]) return;
+                        var sh = shopMap[sidR];
+                        sh.replayCount++;
+                        var pf = safeNum(r.pf);
+                        if(pf !== null){ sh.pfSum += pf; sh.pfCnt++; }
+                    });
+                    (p.blog || []).forEach(function(b){
+                        if(!inLastDays(b.ndate, days)) return;
+                        var sid = b.sid;
+                        if(shopMap[sid]) shopMap[sid].blogCount++;
+                    });
+                    billsRev.forEach(function(b){
+                        var sid = String(b.sid||'');
+                        var sh = shopMap[sid];
+                        if(!sh) return;
+                        var t = safeNum(b.total);
+                        if(t !== null){ sh.orderGmv = (sh.orderGmv||0)+t; sh.orderCnt = (sh.orderCnt||0)+1; }
+                    });
+                    shopRankDataAll = Object.keys(shopMap).map(function(k){
+                        var s = shopMap[k];
+                        s.avgReplayPf = s.pfCnt ? (s.pfSum / s.pfCnt).toFixed(2) : '-';
+                        return s;
+                    });
+                    renderCharts();
+                    renderShopRankTable();
+
+                    var buyerSet = {};
+                    billsScoped.forEach(function(b){
+                        var u = (b.uid || '').toString();
+                        if(u) buyerSet[u] = 1;
+                    });
+                    var blogTotalScoped = (p.blog || []).filter(function(b){
+                        if(!inLastDays(b.ndate, days)) return false;
+                        if(filterState.shopId && String(b.sid||'') !== String(filterState.shopId)) return false;
+                        return true;
+                    }).length;
+                    $("#userTotal").text(Object.keys(buyerSet).length);
+                    $("#shopTotal").text((shops || []).length);
+                    $("#blogTotal").text(blogTotalScoped);
+
+                    $("#statUserFoot").text('近 ' + days + ' 天 · ' + (filterState.shopId ? (filterState.shopName || ('店铺#' + filterState.shopId)) : '全部店铺') + ' · 订单去重');
+                    $("#statShopFoot").text(filterState.shopId ? '当前已选 1 家店铺' : ('全平台入驻商家 · 共 ' + (shops || []).length + ' 家'));
+                    $("#statBlogFoot").text('近 ' + days + ' 天内发布 · ' + (filterState.shopId ? (filterState.shopName || '所选店铺') : '全部店铺'));
+
+                    $("#userCount").text(Object.keys(buyerSet).length);
+                    $("#goodCount").text((goods || []).length);
+                    $("#shopCount").text((shops || []).length);
+                    $("#blogCount").text(blogTotalScoped);
+                    $("#sysmsgCount").text((p.sysmsg || []).filter(function(m){ return inLastDays(m.ndate, days); }).length);
+                    metricCounts.type = (p.type || []).length;
+                    metricCounts.btype = (p.btype || []).length;
+                    $("#typeCount").text(metricCounts.type);
+                    $("#btypeCount").text(metricCounts.btype);
+
+                    // 经营 KPI（订单表 bill）
+                    var gmvSum = 0, ordCnt = 0, refSum = 0;
+                    billsRev.forEach(function(b){
+                        var t = safeNum(b.total);
+                        if(t !== null){ gmvSum += t; ordCnt++; }
+                    });
+                    refundBills.forEach(function(b){
+                        var t = safeNum(b.total);
+                        if(t !== null) refSum += t;
+                    });
+                    var gmvByDay = labels.map(function(d){
+                        var s = 0;
+                        billsRev.forEach(function(b){
+                            if((b.ndate||'').substr(0,10) === d){
+                                var t = safeNum(b.total);
+                                if(t !== null) s += t;
+                            }
+                        });
+                        return Math.round(s * 100) / 100;
+                    });
+                    $("#kpi_gmv").text(Math.round(gmvSum * 100) / 100);
+                    $("#kpi_orders").text(ordCnt);
+                    $("#kpi_aov").text(ordCnt ? (Math.round(gmvSum / ordCnt * 100) / 100) : '0');
+                    $("#kpi_refund").text(Math.round(refSum * 100) / 100);
+
+                    // 商品销售榜：优先按订单 gids 分摊实付；无订单时回退 xl
+                    var goodMap = {};
+                    goods.forEach(function(g){ goodMap[g.id] = g; });
+                    var goodSales = {};
+                    if(billsRev.length){
+                        billsRev.forEach(function(b){
+                            var total = safeNum(b.total) || 0;
+                            var gids = String(b.gids||'').split(',').map(function(x){return x.trim();}).filter(Boolean);
+                            if(!gids.length) return;
+                            var share = total / gids.length;
+                            gids.forEach(function(gid){
+                                goodSales[gid] = (goodSales[gid] || 0) + share;
+                            });
+                        });
+                    }else{
+                        goods.forEach(function(g){
+                            var xl = safeNum(g.xl);
+                            goodSales[g.id] = xl ? xl : 0;
+                        });
+                    }
+                    var topArr = Object.keys(goodSales).map(function(gid){
+                        return { id: gid, name: (goodMap[gid] && goodMap[gid].gname) ? goodMap[gid].gname : ('商品#'+gid), v: goodSales[gid] || 0 };
+                    }).sort(function(a,b){ return b.v - a.v; }).slice(0,10);
+
+                    // 用户域 KPI：与顶部卡片一致，按时间+店铺内有下单的用户去重；无订单时显示 0
+                    var usersScoped = [];
+                    var bid;
+                    for(bid in buyerSet){
+                        if(!Object.prototype.hasOwnProperty.call(buyerSet, bid)) continue;
+                        var found = (users || []).filter(function(u){ return String(u.id) === String(bid); });
+                        if(found.length) usersScoped.push(found[0]);
+                    }
+                    $("#kpi_user_total").text(usersScoped.length);
+                    var roleMap = {};
+                    usersScoped.forEach(function(u){ var r = (u.roletype || '未知') + ''; roleMap[r] = (roleMap[r] || 0) + 1; });
+                    var rolePie = Object.keys(roleMap).map(function(k){
+                        var name = k;
+                        if(k==='1') name='超级管理员';
+                        else if(k==='5') name='运营管理员';
+                        else if(k==='6') name='审核管理员';
+                        else if(k==='3') name='商家';
+                        else if(k==='0') name='普通用户';
+                        return { name: name, value: roleMap[k] };
+                    });
+                    if(!rolePie.length) rolePie = [{ name: '暂无下单用户', value: 1, itemStyle: { color: '#e5e7eb' } }];
+                    $("#kpi_user_role_cnt").text(Object.keys(roleMap).length);
+                    var actOrd = billsScoped.filter(function(b){
+                        var st = (b.statecn||'');
+                        return st !== '已取消' && st !== '待付款';
+                    }).length;
+                    var actGmv = 0;
+                    billsScoped.forEach(function(b){
+                        var st = (b.statecn||'');
+                        if(st === '已取消' || st === '待付款') return;
+                        var t = safeNum(b.total);
+                        if(t !== null) actGmv += t;
+                    });
+                    $("#kpi_active_orders").text(actOrd);
+                    $("#kpi_active_gmv").text(Math.round(actGmv * 100) / 100);
+
+                    // 商家域 KPI
+                    var pendingShop = 0, lowShop = 0, pfSum = 0, pfCnt = 0;
+                    var auditMap = {};
+                    var pfHist = [0,0,0,0,0];
+                    (shops || []).forEach(function(s){
+                        var st = (s.statecn || '未知') + '';
+                        auditMap[st] = (auditMap[st] || 0) + 1;
+                        if(st === '待审核') pendingShop++;
+                        var pf = safeNum(s.pf);
+                        if(pf !== null){
+                            pfSum += pf; pfCnt++;
+                            var bin = Math.min(5, Math.max(1, Math.round(pf)));
+                            pfHist[bin-1] += 1;
+                            if(pf < 4) lowShop++;
+                        }
+                    });
+                    $("#kpi_shop_total").text((shops || []).length);
+                    $("#kpi_shop_pending").text(pendingShop);
+                    $("#kpi_shop_low").text(lowShop);
+                    $("#kpi_shop_avgpf").text(pfCnt ? (pfSum/pfCnt).toFixed(2) : '0');
+                    var shopAuditPie = Object.keys(auditMap).map(function(k){ return { name:k, value:auditMap[k] }; });
+                    if(!shopAuditPie.length) shopAuditPie = [{ name: '暂无', value: 1, itemStyle: { color: '#e5e7eb' } }];
+
+                    // 口碑域 KPI
+                    var rpSum = 0, rpCnt = 0, bad = 0;
+                    var pfByDaySum = labels.map(function(){ return 0; });
+                    var pfByDayCnt = labels.map(function(){ return 0; });
+                    replays.forEach(function(r){
+                        var pf = safeNum(r.pf);
+                        if(pf !== null){
+                            rpSum += pf; rpCnt++;
+                            if(pf <= 2) bad++;
+                            if(inLastDays(r.ndate, days)){
+                                var d = (r.ndate+'').substr(0,10);
+                                var idx = labels.indexOf(d);
+                                if(idx >= 0){ pfByDaySum[idx] += pf; pfByDayCnt[idx] += 1; }
+                            }
+                        }
+                    });
+                    var pfByDay = labels.map(function(_,i){
+                        return pfByDayCnt[i] ? parseFloat((pfByDaySum[i]/pfByDayCnt[i]).toFixed(2)) : 0;
+                    });
+                    $("#kpi_replay_total").text(rpCnt);
+                    $("#kpi_replay_avgpf").text(rpCnt ? (rpSum/rpCnt).toFixed(2) : '0');
+                    $("#kpi_replay_bad").text(bad);
+                    var appealPending = (appeals || []).filter(function(a){ return (a.statecn||'') === '待处理'; }).length;
+                    $("#kpi_appeal_pending2").text(appealPending);
+                    var appealStateMap = {};
+                    (appeals || []).forEach(function(a){
+                        var st = (a.statecn || '未知') + '';
+                        appealStateMap[st] = (appealStateMap[st] || 0) + 1;
+                    });
+                    var appealStatePie = Object.keys(appealStateMap).map(function(k){ return { name:k, value: appealStateMap[k] }; });
+                    if(!appealStatePie.length) appealStatePie = [{ name: '暂无申诉', value: 1, itemStyle: { color: '#e5e7eb' } }];
+
+                    // 活动域 KPI（按日期筛选范围内条数）
+                    var yhInRange = (youhui || []).filter(function(y){
+                        if(!inLastDays(y.ndate, days)) return false;
+                        if(filterState.shopId && String(y.sid||'') !== String(filterState.shopId)) return false;
+                        return true;
+                    });
+                    var smInRange = (sysmsg || []).filter(function(m){ return inLastDays(m.ndate, days); });
+                    $("#kpi_youhui_cnt").text(yhInRange.length);
+                    $("#kpi_notice_cnt2").text(smInRange.length);
+                    $("#kpi_act_gmv").text(Math.round(gmvSum * 100) / 100);
+                    $("#kpi_blog_cnt2").text((blogs || []).length);
+
+                    var actByDay = labels.map(function(d){
+                        var c = 0;
+                        (youhui || []).forEach(function(y){
+                            if((y.ndate||'').substr(0,10) === d) c++;
+                        });
+                        return c;
+                    });
+                    var blogByDay = labels.map(function(d){
+                        var c = 0;
+                        (blogs || []).forEach(function(bg){
+                            if((bg.ndate||'').substr(0,10) === d) c++;
+                        });
+                        return c;
+                    });
+                    var sysmsgByDay = labels.map(function(d){
+                        var c = 0;
+                        (sysmsg || []).forEach(function(m){
+                            if((m.ndate||'').substr(0,10) === d) c++;
+                        });
+                        return c;
+                    });
+                    renderDomainCharts({
+                        dayLabels: labels,
+                        gmvByDay: gmvByDay,
+                        goodTopNames: topArr.map(function(x){ return x.name; }),
+                        goodTopValues: topArr.map(function(x){ return Math.round(x.v); }),
+                        rolePie: rolePie,
+                        shopAuditPie: shopAuditPie,
+                        shopPfHist: pfHist,
+                        pfByDay: pfByDay,
+                        appealStatePie: appealStatePie,
+                        actByDay: actByDay,
+                        blogByDay: blogByDay,
+                        sysmsgByDay: sysmsgByDay
+                    });
+                }
+            }, true);
+        }
+
+        // 依次请求（避免并发依赖）
+        once('good', function(cb){ ajaxCallback1('list', {table:'good'}, cb, true); });
+        once('shop', function(cb){ ajaxCallback1('list', {table:'shop'}, function(r){ populateShopFilter(r||[]); cb(r); }, true); });
+        once('replay', function(cb){ ajaxCallback1('list', {table:'replay'}, cb, true); });
+        once('appeal', function(cb){ ajaxCallback1('list', {table:'replay_appeal'}, cb, true); });
+        once('user', function(cb){ ajaxCallback1('list', {table:'user'}, cb, true); });
+        once('blog', function(cb){ ajaxCallback1('list', {table:'blog'}, cb, true); });
+        once('youhui', function(cb){ ajaxCallback1('list', {table:'youhuiquan'}, cb, true); });
+        once('sysmsg', function(cb){ ajaxCallback1('list', {table:'sysmsg'}, cb, true); });
+        once('bill', function(cb){ ajaxCallback1('list', {table:'bill'}, cb, true); });
+        once('type', function(cb){ ajaxCallback1('list', {table:'type'}, cb, true); });
+        once('btype', function(cb){ ajaxCallback1('list', {table:'btype'}, cb, true); });
+    }
+
+    function openDrill(domain){
+        var days = filterState.days || 30;
+        var sid = filterState.shopId || '';
+        var titles = { biz:'经营交易', goods:'商品与结构', user:'用户与活跃', shop:'商家供给', replay:'口碑与申诉', activity:'活动与内容' };
+        var url = 'drill-analytics.html?domain=' + encodeURIComponent(domain) +
+            '&days=' + encodeURIComponent(days) + '&sid=' + encodeURIComponent(sid);
+        openInParent(url, '深度分析 · ' + (titles[domain] || domain), 'fa fa-line-chart');
+    }
+
+    $(function(){
+        // 初始化 layui element 与 form，使五大分析域 Tab 可切换、筛选器样式生效
+        layui.use(['element', 'form', 'table', 'laypage', 'layer'], function(){
+            var element = layui.element;
+            var form = layui.form;
+            form.render('select');
+            form.on('select(f_range)', function(){ applyFilters(); });
+            form.on('select(f_shop)', function(){ applyFilters(); });
+            element.on('tab(domainTabs)', function(){
+                setTimeout(function(){ resizeAllDashboardCharts(); }, 80);
+            });
+        });
+        // 初次渲染分析域（按默认筛选：近30天、全部店铺），统一写入顶部卡片与概览（含 type/btype）
+        refreshAllAnalytics();
+        try {
+            if (typeof userinfo !== 'undefined' && userinfo && String(userinfo.roletype) !== '3') {
+                $('#btnBatchShopAiDecision').show();
+            }
+        } catch (eShow) {}
+    });
+</script>
+</body>
+</html>

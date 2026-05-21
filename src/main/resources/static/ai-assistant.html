@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 小助手</title>
+    <link rel="stylesheet" href="./__PUBLIC__/layuimini/lib/layui-v2.5.5/css/layui.css" media="all">
+    <script src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script src="./__PUBLIC__/js/common.js"></script>
+    <script src="./__PUBLIC__/layuimini/lib/layui-v2.5.5/layui.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #fff7ed 0%, #f5f6fa 120px);
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            padding: 16px;
+            padding-bottom: 32px;
+        }
+        .hero {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .hero-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #ff943c, #ff6b35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.28);
+        }
+        .hero-text .hd { font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 6px 0; }
+        .hero-text .tip { font-size: 12px; color: #6b7280; line-height: 1.55; margin: 0; }
+
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(229, 231, 235, 0.95);
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+        }
+        .card-label { font-size: 12px; font-weight: 600; color: #9ca3af; margin-bottom: 8px; letter-spacing: 0.02em; }
+        .ctx-sub {
+            font-size: 12px;
+            color: #0369a1;
+            background: #e0f2fe;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin: 0 0 10px 0;
+            line-height: 1.45;
+            word-break: break-all;
+        }
+        .chip-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .chip {
+            cursor: pointer;
+            font-size: 12px;
+            padding: 7px 13px;
+            border-radius: 999px;
+            border: 1px solid #fdba74;
+            background: #fff7ed;
+            color: #9a3412;
+            line-height: 1.3;
+            transition: background 0.15s, transform 0.12s;
+        }
+        .chip:hover { background: #ffedd5; transform: translateY(-1px); }
+        .chip:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+        .q {
+            width: 100%;
+            min-height: 96px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        .q:focus {
+            outline: none;
+            border-color: #ff943c;
+            box-shadow: 0 0 0 3px rgba(255, 148, 60, 0.15);
+        }
+        .btn-row { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .btn-send.layui-btn {
+            min-width: 120px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #ff943c, #ff6b35) !important;
+            border: none !important;
+        }
+        .btn-send.layui-btn-disabled {
+            opacity: 0.72;
+            cursor: not-allowed;
+        }
+        .btn-send .ico-load {
+            margin-right: 6px;
+            display: none;
+        }
+        .btn-send.sending .ico-load {
+            display: inline-block;
+        }
+        .btn-clear { border-radius: 999px !important; }
+
+        .ans-wrap { display: none; }
+        .ans-wrap.show { display: block; }
+        .ans-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .ans-toolbar .layui-btn { border-radius: 999px !important; }
+        .ctx-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #ecfdf5;
+            color: #047857;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .ctx-tag.weak { background: #f3f4f6; color: #6b7280; }
+        .bubble-ai {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+        .err-box {
+            display: none;
+            border-radius: 12px;
+            padding: 14px 16px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            font-size: 14px;
+        }
+        .err-box.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="hero-avatar">🤖</div>
+        <div class="hero-text">
+            <h1 class="hd">AI 小助手</h1>
+            <p class="tip">结合后台数据作答时，助手会尽量给出结论、数据解读与可执行建议。自动附带经营或平台摘要；悬浮窗会跟随您在后台切换的标签页同步上下文（亦可顶部菜单单独打开本页）。仅供参考，不构成承诺。</p>
+        </div>
+    </div>
+
+    <div class="card" id="quickCard">
+        <div class="card-label">上下文芯片（随当前后台标签页 / 菜单自动变化，点击填入）</div>
+        <p class="ctx-sub" id="ctxSub" style="display: none;"></p>
+        <div class="chip-row" id="quickChips"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">输入问题</div>
+        <textarea id="q" class="q" placeholder="例如：低分预警商家有吗？近两周我店订单大概怎样？"></textarea>
+        <div class="btn-row">
+            <button type="button" class="layui-btn layui-btn-normal btn-send" id="btnSend">
+                <i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop ico-load"></i>
+                <span class="btn-label">发送</span>
+            </button>
+            <button type="button" class="layui-btn layui-btn-primary btn-clear" id="btnClear">清空</button>
+        </div>
+    </div>
+
+    <div class="card ans-wrap" id="outBox">
+        <div class="card-label">回答</div>
+        <div class="ans-toolbar">
+            <button type="button" class="layui-btn layui-btn-xs layui-btn-primary" id="btnCopyAns">复制回答</button>
+            <button type="button" class="layui-btn layui-btn-xs layui-btn-primary" id="btnCopyQA">复制本轮问答</button>
+        </div>
+        <span class="ctx-tag" id="ctxTag">—</span>
+        <div class="bubble-ai" id="ans"></div>
+    </div>
+    <div class="err-box" id="errBox"></div>
+
+    <script>
+        if (!userinfo) {
+            document.body.innerHTML = '<p style="padding:24px;font-family:sans-serif;">请先通过后台登录后再使用。</p>';
+        } else {
+            layui.use(['layer'], function () {
+                var layer = layui.layer;
+
+                function parsePageCtx() {
+                    var p = new URLSearchParams(window.location.search || '');
+                    return {
+                        tabTitle: (p.get('tabTitle') || '').trim(),
+                        tabHref: (p.get('tabHref') || '').trim()
+                    };
+                }
+                var pageCtx = parsePageCtx();
+
+                /**
+                 * 上下文芯片：优先按当前 tab 的 href / 标题匹配菜单，再合并角色默认句。
+                 * 商家管理 / 审核相关页首条为「待审核店铺最多的类目？」类问法。
+                 */
+                function buildQuickChips(tabTitle, tabHref, roletype) {
+                    var t = (tabTitle || '').trim();
+                    var h = (tabHref || '').trim().toLowerCase();
+                    var blob = (t + ' ' + h).toLowerCase();
+                    var rt = String(roletype || '');
+                    var out = [];
+                    /** 是否命中「某后台菜单」专属规则；命中后不再追加全站通用前三句 */
+                    var matchedMenu = false;
+                    var push = function (s) {
+                        if (s && out.indexOf(s) < 0) {
+                            out.push(s);
+                        }
+                    };
+                    var hrefHas = function (frag) {
+                        return h.indexOf(frag) >= 0;
+                    };
+
+                    if (rt === '3') {
+                        push('最近两周本店订单和评价概况怎样？');
+                        push('有没有需要注意的低分或差评风险？');
+                        push('优惠券使用上有什么建议？');
+                        if (hrefHas('shopoperation') || /店铺运营|经营/.test(blob)) {
+                            push('本店曝光与复购可以从哪些指标侧面判断？');
+                        }
+                        return out.slice(0, 8);
+                    }
+
+                    /** 与 init.json / init5 / init6 中 href 对齐；订单页勿用模糊包含 bill 以免误伤其它 href */
+                    if (hrefHas('shopreplaymap') || (t.indexOf('商家') >= 0 && hrefHas('shopreplay'))) {
+                        matchedMenu = true;
+                        push('待审核店铺最多的类目是哪些？');
+                        push('当前待审核店铺有多少？主要集中在什么审核状态？');
+                        push('待审核里有没有评分或资质风险偏高的店铺？');
+                        push('商家地图/列表里待审与已通过的比例是否异常？');
+                    } else if (hrefHas('replay-appeal') || /申诉/.test(t)) {
+                        matchedMenu = true;
+                        push('待处理评价申诉有多少条？');
+                        push('申诉里高频原因是什么？处理上有什么建议？');
+                        push('哪些店铺申诉量异常偏高需要关注？');
+                        push('从数据看申诉处理时效有没有积压风险？');
+                    } else if (hrefHas('bill-el') || /订单/.test(t)) {
+                        matchedMenu = true;
+                        push('近期待付款订单是否偏多？');
+                        push('异常或退款相关订单有没有集中店铺？');
+                        push('结合数据，订单侧今天最值得先处理的三件事？');
+                        push('各状态订单占比与上周相比有什么变化？');
+                    } else if (hrefHas('goodreplay') || hrefHas('good-el') || (t.indexOf('商品') >= 0 && !hrefHas('shopreplay'))) {
+                        matchedMenu = true;
+                        push('商品侧有没有明显的滞销或低评分 SKU？');
+                        push('上新与下架节奏上有什么数据化建议？');
+                        push('各分类下商品动销与库存有没有异常长尾？');
+                        push('前台热销与后台库存/上下架是否可能脱节？');
+                    } else if (hrefHas('user-el') || (t.indexOf('账户') >= 0) || (t.indexOf('用户') >= 0 && t.indexOf('商品') < 0)) {
+                        matchedMenu = true;
+                        push('各身份账号数量分布是否正常？');
+                        push('有没有长期未登录或余额异常的账户值得关注？');
+                        push('商家账号与店铺 ID 绑定有没有明显异常？');
+                    } else if (hrefHas('typesub') || (t.indexOf('分类') >= 0 && !hrefHas('btype'))) {
+                        matchedMenu = true;
+                        push('分类树有没有空置或重复类目需要整理？');
+                        push('商品分类与前台展示一致性要注意什么？');
+                        push('父子类目层级是否过深影响运营维护？');
+                    } else if (hrefHas('youhuiquan') || /活动|优惠券|店铺优惠券/.test(t)) {
+                        matchedMenu = true;
+                        push('近30天优惠券领取与核销概况如何？');
+                        push('活动投放上有没有明显浪费或门槛设置问题？');
+                        push('不同券种 ROI 从现有数据能读出什么结论？');
+                    } else if (hrefHas('workbench')) {
+                        matchedMenu = true;
+                        push('工作台待办里，哪几项建议今天优先清零？');
+                        push('低分店铺与待审核店铺数量对比上周有变化吗？');
+                        push('待付款订单与系统公告里有没有需要联动处理的事项？');
+                    } else if (hrefHas('dashbord') || /数据分析|店铺数据/.test(t)) {
+                        matchedMenu = true;
+                        push('核心指标里有哪些异常波动值得解读？');
+                        push('从数据上看，本周运营侧最该盯哪条曲线？');
+                        push('图表中有没有「看起来正常但环比异常」的拐点？');
+                        push('若只看一个指标预警，你会建议先看哪个？');
+                    } else if (hrefHas('mgc-vue') || /敏感词/.test(t)) {
+                        matchedMenu = true;
+                        push('敏感词命中主要集中在哪些场景或店铺？');
+                        push('词库有没有明显缺口或误杀风险？');
+                        push('近期新增敏感词有没有重复或过于宽泛的？');
+                    } else if (hrefHas('blogreplaymap') || /探店/.test(t) || (t.indexOf('文章') >= 0 && t.indexOf('分类') < 0)) {
+                        matchedMenu = true;
+                        push('待审或违规风险偏高的探店文章有哪些特征？');
+                        push('探店内容热度与店铺关联度上有什么建议？');
+                        push('高曝光低转化的探店内容可能问题出在哪？');
+                    } else if (hrefHas('btype-vue') || /文章分类/.test(t)) {
+                        matchedMenu = true;
+                        push('文章分类与探店标签体系是否需要对齐整理？');
+                        push('空分类或单篇分类是否过多需要合并？');
+                    } else if (hrefHas('ai-assistant') || /ai小助手|ai助手/.test(blob)) {
+                        matchedMenu = true;
+                        push('怎样提问能更好利用当前页上下文？');
+                        push('全平台低分与待审核概况各是什么水平？');
+                    } else if (/审核/.test(t) || (/店铺/.test(blob) && !hrefHas('goodreplay'))) {
+                        matchedMenu = true;
+                        push('待审核店铺最多的类目是哪些？');
+                        push('待审核店铺主要集中在哪些状态？');
+                    }
+
+                    if (!matchedMenu) {
+                        push('低分预警店铺当前有多少？');
+                        push('结合工作台数据，今天优先处理建议？');
+                        push('待审核店铺有多少？有哪些需要注意？');
+                    }
+
+                    return out.slice(0, 10);
+                }
+
+                function renderChips(list) {
+                    var $row = $('#quickChips').empty();
+                    list.forEach(function (text) {
+                        $('<button type="button" class="chip"></button>')
+                            .text(text)
+                            .attr('type', 'button')
+                            .appendTo($row);
+                    });
+                }
+
+                function setChipsDisabled(dis) {
+                    $('#quickChips .chip').prop('disabled', !!dis);
+                }
+
+                function refreshCtxUiAndChips() {
+                    if (pageCtx.tabTitle || pageCtx.tabHref) {
+                        var line = '已关联当前后台标签页';
+                        if (pageCtx.tabTitle) {
+                            line += '：「' + pageCtx.tabTitle + '」';
+                        }
+                        if (pageCtx.tabHref) {
+                            line += (pageCtx.tabTitle ? ' — ' : '：') + pageCtx.tabHref;
+                        }
+                        line += '（切换顶部 Tab 将自动同步）';
+                        $('#ctxSub').text(line).show();
+                    } else {
+                        $('#ctxSub').hide().text('');
+                    }
+                    renderChips(buildQuickChips(pageCtx.tabTitle, pageCtx.tabHref, userinfo.roletype));
+                }
+                refreshCtxUiAndChips();
+
+                window.addEventListener('message', function (ev) {
+                    if (ev.source !== window.parent) {
+                        return;
+                    }
+                    var d = ev.data;
+                    if (!d || d.type !== 'adminAiCtx') {
+                        return;
+                    }
+                    var nt = (d.tabTitle || '').trim();
+                    var nh = (d.tabHref || '').trim();
+                    /* 父页在 Tab 未就绪时可能推空对象，忽略以免覆盖 URL 初始上下文 */
+                    if (!nt && !nh) {
+                        return;
+                    }
+                    pageCtx.tabTitle = nt;
+                    pageCtx.tabHref = nh;
+                    refreshCtxUiAndChips();
+                    var hint = pageCtx.tabTitle || pageCtx.tabHref || '首页';
+                    layer.msg('已同步当前标签页：' + hint, { time: 1600 });
+                });
+
+                var sending = false;
+                var lastSentRawQ = '';
+                var lastReplyText = '';
+
+                function copyToClipboard(text) {
+                    if (!text) {
+                        layer.msg('暂无内容可复制');
+                        return;
+                    }
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(function () {
+                            layer.msg('已复制到剪贴板');
+                        }).catch(function () {
+                            fallbackCopy(text);
+                        });
+                    } else {
+                        fallbackCopy(text);
+                    }
+                }
+                function fallbackCopy(text) {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try {
+                        document.execCommand('copy');
+                        layer.msg('已复制到剪贴板');
+                    } catch (e) {
+                        layer.msg('复制失败，请手动选择文本');
+                    }
+                    document.body.removeChild(ta);
+                }
+
+                function setSending(on) {
+                    sending = on;
+                    var $b = $('#btnSend');
+                    var $clear = $('#btnClear');
+                    var $q = $('#q');
+                    if (on) {
+                        $b.addClass('sending layui-btn-disabled').prop('disabled', true);
+                        $b.find('.btn-label').text('发送中…');
+                        $clear.prop('disabled', true).addClass('layui-btn-disabled');
+                        $q.prop('disabled', true);
+                        setChipsDisabled(true);
+                        $('#btnCopyAns,#btnCopyQA').prop('disabled', true).addClass('layui-btn-disabled');
+                    } else {
+                        $b.removeClass('sending layui-btn-disabled').prop('disabled', false);
+                        $b.find('.btn-label').text('发送');
+                        $clear.prop('disabled', false).removeClass('layui-btn-disabled');
+                        $q.prop('disabled', false);
+                        setChipsDisabled(false);
+                        $('#btnCopyAns,#btnCopyQA').prop('disabled', false).removeClass('layui-btn-disabled');
+                    }
+                }
+
+                $('#quickChips').on('click', '.chip', function () {
+                    if (sending) {
+                        return;
+                    }
+                    $('#q').val($(this).text());
+                    $('#q').focus();
+                });
+
+                function send() {
+                    if (sending) {
+                        return;
+                    }
+                    var rawQ = ($('#q').val() || '').trim();
+                    if (!rawQ) {
+                        layer.msg('请输入问题');
+                        return;
+                    }
+                    var qForApi = rawQ;
+                    if (pageCtx.tabTitle) {
+                        qForApi = '【当前后台页面：' + pageCtx.tabTitle + '】'
+                            + (pageCtx.tabHref ? '（' + pageCtx.tabHref + '）' : '')
+                            + '\n' + rawQ;
+                    } else if (pageCtx.tabHref) {
+                        qForApi = '【当前后台页面：' + pageCtx.tabHref + '】\n' + rawQ;
+                    }
+                    lastSentRawQ = rawQ;
+                    $('#outBox').removeClass('show');
+                    $('#errBox').removeClass('show').text('');
+                    setSending(true);
+                    var data = { q: qForApi, roletype: String(userinfo.roletype || '') };
+                    if (userinfo.sid) {
+                        data.sid = userinfo.sid;
+                    }
+                    if (userinfo.id) {
+                        data.uid = userinfo.id;
+                    }
+                    ajaxCallback('aiAssistantChatJ', data, function (res) {
+                        setSending(false);
+                        if (!res || !res.ok) {
+                            $('#errBox').text((res && res.error) ? res.error : '请求失败').addClass('show');
+                            lastReplyText = '';
+                            return;
+                        }
+                        var $tag = $('#ctxTag');
+                        if (res.hasContext) {
+                            $tag.removeClass('weak').text('已附带系统数据摘要');
+                        } else {
+                            $tag.addClass('weak').text('通用问答（无业务数据上下文）');
+                        }
+                        lastReplyText = res.reply || '';
+                        $('#ans').text(lastReplyText);
+                        $('#outBox').addClass('show');
+                    }, true);
+                }
+
+                $('#btnSend').on('click', send);
+                $('#btnClear').on('click', function () {
+                    if (sending) {
+                        return;
+                    }
+                    $('#q').val('');
+                    $('#outBox').removeClass('show');
+                    $('#errBox').removeClass('show').text('');
+                    lastSentRawQ = '';
+                    lastReplyText = '';
+                });
+
+                $('#btnCopyAns').on('click', function () {
+                    copyToClipboard(lastReplyText);
+                });
+                $('#btnCopyQA').on('click', function () {
+                    if (!lastSentRawQ && !lastReplyText) {
+                        layer.msg('请先发送一条问题');
+                        return;
+                    }
+                    var block = '';
+                    if (pageCtx.tabTitle) {
+                        block += '【页面】' + pageCtx.tabTitle + (pageCtx.tabHref ? ' / ' + pageCtx.tabHref : '') + '\n';
+                    }
+                    block += '【问】' + (lastSentRawQ || '（未记录）') + '\n【答】' + (lastReplyText || '（无）');
+                    copyToClipboard(block);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/crud-enhance.js"></script>
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/index.css" />
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/public.css" />
+    <style>
+        /* 订单列表：商品、店铺完整换行；联系人单行省略（列上 show-overflow-tooltip） */
+        .bill-cell-wrap {
+            white-space: normal !important;
+            word-break: break-all;
+            line-height: 1.45;
+            text-align: left;
+        }
+    </style>
+    <script src="./__PUBLIC__/elementui-vue/vue.global.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/icons-vue.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/element-plus.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/zh-cn.js"></script>
+</head>
+<body>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm">
+    <input style="display: none;" id="selectimginput" onchange="showPicImg(this.files);" name="file" type="file"/>
+</form>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm2">
+    <input style="display: none;" id="selectimginput2" onchange="showPicImg2(this.files);" name="file" type="file"/>
+</form>
+<div id="app">
+    <el-container>
+        <el-header style="height: auto;">
+            <div class="searchctn">
+                <el-form :model="sobj" :inline="true" label-width="auto">
+                    <el-form-item label="商品名称">
+                        <el-input v-model="sobj.gnames" placeholder="匹配商品明细" clearable style="width: 160px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="店铺">
+                        <el-input v-model="sobj.shop" placeholder="店铺名称" clearable style="width: 160px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="用户">
+                        <el-input v-model="sobj.user" placeholder="下单用户" clearable style="width: 120px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="日期">
+                        <el-date-picker v-model="sobj.ndate"  type="date" placeholder="请选择..."
+                                        @change="(date) => { sobj.ndate = date.getFullYear()+'-'+(date.getMonth() + 1).toString().padStart(2, '0')+'-'+date.getDate().toString().padStart(2, '0') }">
+                        </el-date-picker>
+                    </el-form-item>
+                    <el-form-item label="订单状态">
+                        <el-select v-model="sobj.statecn" placeholder="全部状态" clearable style="min-width: 140px">
+                            <el-option label="待付款" value="待付款"></el-option>
+                            <el-option label="已付款" value="已付款"></el-option>
+                            <el-option label="已完成" value="已完成"></el-option>
+                            <el-option label="已评价" value="已评价"></el-option>
+                            <el-option label="已发货" value="已发货"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="refreshData">搜索</el-button>
+                        <el-button type="success" @click="toReset">重置</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+        </el-header>
+        <el-main>
+            <div class="datagridctn">
+                <div class="tablectn">
+                    <div class="tabletoolbarctn">
+                        <el-button type="danger" @click="showEdit(null)">新增</el-button>
+                        <el-button type="warning" :disabled="!selectedKeys.length" @click="batchDel">批量删除</el-button>
+                        <el-button type="primary" :disabled="!dataSource.length" @click="exportCurrent">导出CSV</el-button>
+                    </div>
+
+                    <el-table stripe v-loading="loading" :data="dataSource" current-row-key="id" :highlight-current-row="true" :show-overflow-tooltip="false" style="width: 100%"
+                              @selection-change="handleSelectionChange"
+                              @sort-change="handleSortChange"
+                              @filter-change="handleFilterChange">
+                        <el-table-column type="selection" width="48" align="center"></el-table-column>
+                        <el-table-column prop="id" sortable label="编号" width="90" align="center"></el-table-column>
+                        <el-table-column label="商品" min-width="220" align="left" :show-overflow-tooltip="false">
+                            <template #default="scope">
+                                <span class="bill-cell-wrap">{{ scope.row.gnames || '-' }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="店铺" min-width="140" align="left" :show-overflow-tooltip="false">
+                            <template #default="scope">
+                                <span class="bill-cell-wrap">{{ scope.row.shop || '-' }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="user" sortable label="用户" width="100" align="center"></el-table-column>
+                        <el-table-column prop="total" sortable label="实付(元)" width="100" align="center"></el-table-column>
+                        <el-table-column prop="way" label="用餐方式" width="100" align="center"></el-table-column>
+                        <el-table-column prop="yhqid" label="优惠券ID" width="100" align="center">
+                            <template #default="scope">
+                                <span>{{ scope.row.yhqid || '-' }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="tel" label="联系电话" width="130" align="center" show-overflow-tooltip>
+                            <template #default="scope">
+                                <span>{{ scope.row.tel || '-' }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="note" label="备注" width="120" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="statecn" sortable label="状态" width="100" align="center"
+                                         :filters="stateFilters" :filter-multiple="false" column-key="statecn"></el-table-column>
+                        <el-table-column prop="ndate" sortable label="时间" min-width="170" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column fixed="right" label="操作" width="360" align="center">
+                            <template #default="scope">
+<!--                                <el-button link type="primary" size="small" @click="showEdit(scope.row)">发货</el-button>-->
+                                <el-button v-if="scope.row.statecn === '待付款'" link type="warning" size="small" @click="changeS(scope.row,'已付款')">标记已付款</el-button>
+                                <el-button link type="success" size="small" @click="changeS(scope.row,'已完成')">已完成</el-button>
+                                <el-button link type="danger" size="small" @click="del(scope.row.id)">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <div class="paginationctn">
+                    <el-pagination v-model:current-page="page.current" v-model:page-size="page.limit" :page-sizes="[100, 200, 300, 400]" layout="total, sizes, prev, pager, next, jumper" :total="page.total" @size-change="refreshData" @current-change="refreshData"></el-pagination>
+                </div>
+            </div>
+            <div class="formdialog" v-show="showe">
+                <div class="formdialogtitle">查看编辑<span class="formdialogtitlegb" @click="showe=false"></span></div>
+                <el-form ref="fobjform1" :model="fobj" label-width="auto">
+                    <el-form-item label="备注" prop="note">
+                        <el-input type="textarea" v-model="fobj.note"></el-input>
+                    </el-form-item>
+                    <el-form-item style="text-align: center;margin-top: 50px;">
+                        <el-button type="success" @click="submit1">提交</el-button>
+                        <el-button type="danger" @click="cancel">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+
+        </el-main>
+        <el-footer></el-footer>
+    </el-container>
+</div>
+
+</body>
+<script>
+    const App = {
+        data() {
+            return {
+                formRules:[{required: true, message: '请检查输入...', trigger: 'blur'}],
+                fileurl:fileurl,
+                uploadUrl:uploadUrl,
+                luser:{},
+                tbname:'bill',
+                showe:false,
+                sobj:{},
+                fobj:{},
+                page:{ current: 1, limit: 10, total: 100 },
+                selectedKeys:[],
+                loading:false,
+                dataSource:[],
+                billScopeApplied: false,
+                stateFilters: [
+                    { text: '待付款', value: '待付款' },
+                    { text: '已付款', value: '已付款' },
+                    { text: '已完成', value: '已完成' },
+                    { text: '已评价', value: '已评价' },
+                    { text: '已发货', value: '已发货' },
+                ],
+            };
+        },
+        mounted() {
+            this.luser = userinfo
+            this.applyWorkbenchScope()
+            this.refreshData()
+        },
+        methods: {
+            handleSelectionChange(rows) {
+                this.selectedKeys = (rows || []).map(function (r) { return r.id })
+            },
+            handleSortChange(obj) {
+                if (!obj || !obj.prop) {
+                    delete this.sobj.sort
+                    delete this.sobj.order
+                } else {
+                    this.sobj.sort = obj.prop
+                    this.sobj.order = obj.order === 'ascending' ? 'asc' : (obj.order === 'descending' ? 'desc' : null)
+                }
+                this.refreshData()
+            },
+            handleFilterChange(filters) {
+                if (!filters) return
+                if (filters.statecn) {
+                    this.sobj.statecn = (filters.statecn && filters.statecn.length) ? filters.statecn[0] : null
+                }
+                this.page.current = 1
+                this.refreshData()
+            },
+            batchDel() {
+                if (!this.selectedKeys || !this.selectedKeys.length) {
+                    ElementPlus.ElMessage.warning('请先勾选要删除的行')
+                    return
+                }
+                var self = this
+                ElementPlus.ElMessageBox.confirm('确认批量删除选中的 ' + this.selectedKeys.length + ' 条订单吗？', '提示', {
+                    confirmButtonText: '确认',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(function () {
+                    CrudEnhance.batchDelete(self.tbname, self.selectedKeys, function () {
+                        self.selectedKeys = []
+                        self.refreshData()
+                        ElementPlus.ElMessage.success('批量删除完成')
+                    })
+                }).catch(function () {})
+            },
+            exportCurrent() {
+                CrudEnhance.exportCsv('订单管理_' + getNowDate() + '.csv', this.dataSource)
+            },
+            applyWorkbenchScope(){
+                try {
+                    const sp = new URLSearchParams(window.location.search || '')
+                    if (sp.get('scope') === 'pending_pay') {
+                        this.sobj.statecn = '待付款'
+                        this.billScopeApplied = true
+                    }
+                } catch (e) {}
+            },
+            changeS(d,statecn){
+                ajaxCallback1("save",{table: this.tbname, statecn: statecn, id: d.id},(data) => {
+                    this.refreshData()
+                });
+            },
+            toReset(){
+                this.sobj = {}
+                this.billScopeApplied = false
+                this.selectedKeys = []
+                this.refreshData()
+            },
+            refreshData(){
+                let s = this.sobj
+                s.type = 1
+                s.table = this.tbname
+                s.page = this.page.current
+                s.limit = this.page.limit
+                if (!s.sort) {
+                    s.sort = 'id'
+                    s.order = 'desc'
+                }
+                this.loading = true
+                if(this.luser.roletype == '3'){
+                    s.sid = this.luser.sid
+                }
+                ajaxCallback1('listPage',s,(r)=>{
+                    this.loading = false
+                    this.dataSource = r.rows
+                    this.page.total = r.total
+                })
+            },
+            showEdit(row){
+                this.showe = true
+                if(row){
+                    this.fobj = row
+                    /*editor.txt.html(row.note);
+                    showAttach("imgctn",row.img)*/
+                }else{
+                    this.fobj = {}
+                    /*editor.txt.html('');
+                    showAttach("imgctn",null)*/
+                }
+
+            },
+            submit1(){
+                this.save()
+            },
+            save(){
+                this.fobj.type = 1
+                this.fobj.table = this.tbname;this.fobj.ndate = null
+                this.fobj.statecn = '已发货'
+                //this.fobj.note = editor.txt.html();
+                /*ajaxFormUploadFile((rimg)=>{
+                    this.fobj.img = rimg*/
+                    ajaxCallback("save",this.fobj,(rid) => {
+                        console.log(rid)
+                        this.showe = false
+                        this.refreshData()
+                    });
+                //})
+
+            },
+            cancel(){
+                this.showe = false
+            },
+            del(id){
+                ElementPlus.ElMessageBox.alert('确认删除吗?', '提示!', {
+                    confirmButtonText: '确认',
+                    callback: (action) => {
+                        ajaxCallback1("delete",{table: this.tbname, id: id},(r) => {
+                            this.refreshData()
+                        });
+                    }
+                })
+            }
+        },
+    };
+    const app = Vue.createApp(App);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+    app.use(ElementPlus,{
+        locale: ElementPlusLocaleZhCn,
+    });
+    app.mount("#app");
+</script>
+
+<script type="text/javascript" src="__PUBLIC__/weditor/wangEditor.js"></script>
+
+<script type="text/javascript">
+    // var E = window.wangEditor;
+    // var editor = new E('#editor');
+    // editor.config.uploadImgShowBase64 = false;
+    // editor.config.uploadImgServer = _editorUpload;
+    // editor.config.uploadVideoServer = _editorUploadVideo;
+    // editor.config.uploadFileName = 'file';
+    // editor.config.uploadVideoName = 'file';
+    // editor.config.zIndex = 0;
+    // editor.create()
+</script>
+</html>

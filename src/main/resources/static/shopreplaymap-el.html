@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <script type="text/javascript" src="./__PUBLIC__/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/common.js"></script>
+    <script type="text/javascript" src="./__PUBLIC__/js/crud-enhance.js"></script>
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/index.css" />
+    <link rel="stylesheet" href="./__PUBLIC__/elementui-vue/public.css" />
+    <script src="./__PUBLIC__/elementui-vue/vue.global.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/icons-vue.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/element-plus.js"></script>
+    <script src="./__PUBLIC__/elementui-vue/zh-cn.js"></script>
+    <style>
+        /*
+         * 不用 el-dialog #footer：在 layui 多層 iframe 里 footer 常被裁掉或高度为 0。
+         * 按钮放在 __body 内独立 .shop-warn-bar（flex 固定底栏），中间区域单独滚动。
+         */
+        .shop-warn-dialog.el-dialog {
+            display: flex !important;
+            flex-direction: column;
+            max-height: min(92vh, 640px);
+            margin-top: 4vh !important;
+            box-sizing: border-box;
+        }
+        .shop-warn-dialog .el-dialog__header {
+            flex-shrink: 0;
+        }
+        .shop-warn-dialog .el-dialog__body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            padding: 6px 20px 16px;
+            box-sizing: border-box;
+        }
+        .shop-warn-layout {
+            display: flex;
+            flex-direction: column;
+            max-height: min(58vh, 420px);
+            min-height: 220px;
+        }
+        .shop-warn-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .shop-warn-bar {
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-top: 14px;
+            margin-top: 4px;
+            border-top: 1px solid #ebeef5;
+            background: #fff;
+        }
+        .shop-warn-native {
+            padding: 8px 20px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #dcdfe6;
+            background: #fff;
+            cursor: pointer;
+            line-height: 1.5;
+        }
+        .shop-warn-native--go {
+            background: #e6a23c;
+            border-color: #e6a23c;
+            color: #fff;
+        }
+        .shop-warn-meta {
+            margin-bottom: 14px;
+            color: #606266;
+            font-size: 13px;
+            line-height: 1.65;
+        }
+        .shop-warn-hint {
+            margin-top: 8px;
+            color: #909399;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        /* 菜品评价弹窗：分列（按菜品） */
+        .replay-dialog-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .replay-summary {
+            font-size: 13px;
+            color: #606266;
+        }
+        .replay-split-wrap {
+            display: flex;
+            gap: 0;
+            min-height: 320px;
+            max-height: min(58vh, 520px);
+            border: 1px solid #ebeef5;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .replay-dish-nav {
+            width: 210px;
+            flex-shrink: 0;
+            border-right: 1px solid #ebeef5;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+        .replay-dish-nav-item {
+            padding: 10px 12px 10px 10px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #303133;
+            border-left: 3px solid transparent;
+            line-height: 1.45;
+        }
+        .replay-dish-nav-item:hover { background: #f0f2f5; }
+        .replay-dish-nav-item.is-active {
+            background: #ecf5ff;
+            border-left-color: #409eff;
+            font-weight: 600;
+        }
+        .replay-dish-nav-item .nav-meta {
+            display: block;
+            font-size: 11px;
+            color: #909399;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+        .replay-table-panel {
+            flex: 1;
+            min-width: 0;
+            overflow: auto;
+            padding: 0 4px 8px 8px;
+        }
+        .shop-table-op-col .cell {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: center;
+            gap: 0 2px;
+            line-height: 1.4;
+            padding: 4px 6px;
+        }
+    </style>
+</head>
+<body>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm">
+    <input style="display: none;" id="selectimginput" onchange="showPicImg(this.files);" name="file" type="file"/>
+</form>
+<form action="" method="post" enctype="multipart/form-data" id="uploadForm2">
+    <input style="display: none;" id="selectimginput2" onchange="showPicImg2(this.files);" name="file" type="file"/>
+</form>
+<div id="app">
+    <el-container>
+        <el-header style="height: auto;">
+            <div class="searchctn">
+                <el-form :model="sobj" :inline="true" label-width="auto">
+                    <el-form-item label="名称">
+                        <el-input v-model="sobj.sname" placeholder="店铺名称" clearable style="width: 180px"></el-input>
+                    </el-form-item>
+                    <el-form-item label="电话">
+                        <el-input v-model="sobj.tel" placeholder="联系电话" clearable style="width: 160px"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="refreshData">搜索</el-button>
+                        <el-button type="success" @click="toReset">重置</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+        </el-header>
+        <el-main>
+            <div class="datagridctn">
+                <div class="tablectn">
+                    <div class="tabletoolbarctn">
+                        <el-button type="danger" @click="showEdit(null)">新增</el-button>
+                        <el-button type="warning" :disabled="!selectedKeys.length" @click="batchDel">批量删除</el-button>
+                        <el-button type="primary" :disabled="!dataSource.length" @click="exportCurrent">导出CSV</el-button>
+                    </div>
+
+                    <el-table stripe v-loading="loading" :data="dataSource" current-row-key="id" :highlight-current-row="true" :show-overflow-tooltip="true" style="width: 100%"
+                              @selection-change="handleSelectionChange"
+                              @sort-change="handleSortChange"
+                              @filter-change="handleFilterChange">
+                        <el-table-column type="selection" width="48" align="center"></el-table-column>
+                        <el-table-column prop="id" sortable label="编号" width="100px" align="center"></el-table-column>
+                        <el-table-column
+                                prop="sname"
+                                sortable
+                                label="名称"
+                                min-width="120"
+                                align="center"
+                                show-overflow-tooltip
+                                :filters="shopFilters"
+                                :filter-multiple="false"
+                                column-key="sname">
+                        </el-table-column>
+                        <el-table-column prop="pf" sortable label="评分(自动)" align="center"></el-table-column>
+                        <el-table-column label="图片" width="100px" align="center">
+                            <template #default="scope">
+                                <img :src="fileurl+scope.row.img" style="width: 50px;height: 50px;">
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="statecn" label="审核状态" min-width="100" align="center" :filters="auditStateFilters" :filter-multiple="false" column-key="statecn"></el-table-column>
+                        <el-table-column
+                                prop="typecn"
+                                label="分类"
+                                min-width="90"
+                                align="center"
+                                :filters="typeFilters"
+                                :filter-multiple="false"
+                                column-key="typecn">
+                        </el-table-column>
+                        <el-table-column prop="address" sortable label="地址" min-width="140" align="center" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="tel" sortable label="电话" width="120" align="center"></el-table-column>
+                        <el-table-column fixed="right" label="操作" width="360" align="center" class-name="shop-table-op-col">
+                            <template #default="scope">
+                                <el-button link type="primary" size="small" @click="showEdit(scope.row)">查看编辑</el-button>
+                                <el-button link type="primary" size="small" @click="showStable(scope.row)">评论列表</el-button>
+                                <el-button
+                                    v-if="luser.roletype != '3'"
+                                    link
+                                    type="success"
+                                    size="small"
+                                    @click="openAiAdviceDialog(scope.row)"
+                                >AI运营建议</el-button>
+                                <el-button
+                                    v-if="luser.roletype != '3'"
+                                    link
+                                    type="warning"
+                                    size="small"
+                                    @click="openWarnDialog(scope.row)"
+                                >发送预警</el-button>
+                                <el-button link type="danger" size="small" @click="del(scope.row.id)">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <div class="paginationctn">
+                    <el-pagination v-model:current-page="page.current" v-model:page-size="page.limit" :page-sizes="[100, 200, 300, 400]" layout="total, sizes, prev, pager, next, jumper" :total="page.total" @size-change="refreshData" @current-change="refreshData"></el-pagination>
+                </div>
+            </div>
+
+            <div class="formdialog" v-show="showe">
+                <div class="formdialogtitle">查看编辑<span class="formdialogtitlegb" @click="showe=false"></span></div>
+                <el-form ref="fobjform1" :model="fobj" label-width="auto">
+                    <el-form-item label="名称" prop="sname" :rules="formRules">
+                        <el-input type="text" v-model="fobj.sname"></el-input>
+                    </el-form-item>
+                    <el-form-item label="评分" prop="pf">
+                        <el-input type="text" v-model="fobj.pf" disabled placeholder="由用户菜品评价自动汇总"></el-input>
+                        <div style="color:#909399;font-size:12px;margin-top:4px;">根据该店所有菜品（美食）评价星级自动计算，保存店铺时不会写入此项。</div>
+                    </el-form-item>
+                    <el-form-item label="审核状态" prop="statecn">
+                        <el-select v-model="fobj.statecn" class="m-2" placeholder="请选择" size="large" style="width: 240px">
+                            <el-option label="待审核" value="待审核" ></el-option>
+                            <el-option label="审核通过" value="审核通过" ></el-option>
+                            <el-option label="审核不通过" value="审核不通过" ></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item v-if="fobj.statecn==='审核不通过'" label="驳回原因">
+                        <el-input
+                                v-model="rejectReason"
+                                type="textarea"
+                                :rows="3"
+                                placeholder="请简要说明审核不通过的原因，此内容会发送给商家"
+                        ></el-input>
+                    </el-form-item>
+                    <el-form-item label="分类" prop="typeid">
+                        <el-select v-model="fobj.typeid" placeholder="" style="min-width: 240px">
+                            <el-option v-for="item in typelist" :label="item.label" :value="item.value" ></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="电话" prop="tel" :rules="formRules">
+                        <el-input type="number" v-model="fobj.tel"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="地址" prop="address" :rules="formRules">
+                        <el-input type="text" v-model="fobj.address"></el-input>
+                    </el-form-item>
+                    <iframe name="selectaddress" width="100%" height="350px" frameborder="0" allow="geolocation" src="http://apis.map.qq.com/tools/locpicker?search=1&type=1&key=W7YBZ-6ZBCW-RLBRW-OWWPF-AAJQO-POBJ4&referer=myapp">
+                    </iframe>
+
+                    <div style="text-align: center;margin-bottom: 20px;">
+                        <div style="width: 150px;margin-left: 35%;">
+                            <div style="text-align: center;">
+                                <div style="text-align: center;" id="imgctn"></div>
+                                <a href="#" onclick="getFileInput(this);">选择封面</a>
+                            </div>
+                        </div>
+                    </div>
+                    <el-form-item label="备注">
+                        <div id="editor" style="width: 480px;height: 400px;">
+
+                        </div>
+                    </el-form-item>
+                    <el-form-item style="text-align: center;margin-top: 50px;">
+                        <el-button type="success" @click="submit1">提交</el-button>
+                        <el-button type="danger" @click="cancel">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+
+            <el-dialog v-model="showt" title="菜品评价列表（本店）" width="86%" top="4vh">
+                <el-container>
+                    <el-header style="height: auto;">
+                        <div class="searchctn">
+                            <el-form :model="sobj2" :inline="true" label-width="auto">
+                                <el-form-item label="评价关键词">
+                                    <el-input v-model="sobj2.noteKw" placeholder="匹配评价正文" clearable></el-input>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" @click="refreshData2">搜索</el-button>
+                                    <el-button type="success" @click="toReset2">重置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+                    </el-header>
+                    <el-main>
+                        <div class="datagridctn">
+                            <div class="replay-dialog-toolbar">
+                                <span class="replay-summary">{{ replaySummaryLine }}</span>
+                                <el-radio-group v-model="replayLayout" size="small">
+                                    <el-radio-button label="split">按菜品分列</el-radio-button>
+                                    <el-radio-button label="flat">平铺表格</el-radio-button>
+                                </el-radio-group>
+                            </div>
+                            <div class="tabletoolbarctn" style="color:#909399;font-size:12px;padding:0 0 10px 0;">
+                                数据口径：该店在售菜品的用户评价（与小程序、词云一致）。左侧按菜品快速筛选；分页为服务端分页，「分列」下当前页内分组。
+                            </div>
+
+                            <div v-if="replayLayout === 'split'" class="replay-split-wrap">
+                                <aside class="replay-dish-nav">
+                                    <div
+                                        class="replay-dish-nav-item"
+                                        :class="{ 'is-active': replayDishNav === '' }"
+                                        @click="replayDishNav = ''"
+                                    >
+                                        全部评价
+                                        <span class="nav-meta">本页 {{ (dataSource2 || []).length }} 条</span>
+                                    </div>
+                                    <div
+                                        v-for="d in replayDishNavItems"
+                                        :key="d.gname"
+                                        class="replay-dish-nav-item"
+                                        :class="{ 'is-active': replayDishNav === d.gname }"
+                                        @click="replayDishNav = d.gname"
+                                    >
+                                        {{ d.gname }}
+                                        <span class="nav-meta">本页 {{ d.count }} 条 · 均分 {{ d.avgText }}</span>
+                                    </div>
+                                </aside>
+                                <div class="replay-table-panel">
+                                    <el-table stripe v-loading="loading2" :data="replayFilteredRows" current-row-key="id" :highlight-current-row="true" :show-overflow-tooltip="true" style="width: 100%">
+                                        <el-table-column prop="id" sortable label="编号" width="88" align="center"></el-table-column>
+                                        <el-table-column v-if="replayDishNav === ''" prop="gname" label="菜品" min-width="120" align="center"></el-table-column>
+                                        <el-table-column prop="note" label="内容" min-width="200" align="center"></el-table-column>
+                                        <el-table-column prop="pf" label="星级" width="72" align="center"></el-table-column>
+                                        <el-table-column prop="ndate" label="日期" width="160" align="center"></el-table-column>
+                                        <el-table-column prop="username" label="用户" width="100" align="center"></el-table-column>
+                                        <el-table-column fixed="right" label="操作" width="160" align="center">
+                                            <template #default="scope">
+                                                <el-button link type="primary" size="small" @click="showEdit2(scope.row)">查看编辑</el-button>
+                                                <el-button link type="danger" size="small" @click="del2(scope.row.id)">删除</el-button>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+                                </div>
+                            </div>
+
+                            <div v-else class="tablectn">
+                                <el-table stripe v-loading="loading2" :data="dataSource2" current-row-key="id" :highlight-current-row="true" :show-overflow-tooltip="true" style="width: 100%">
+                                    <el-table-column prop="id" sortable label="编号" align="center"></el-table-column>
+                                    <el-table-column prop="gname" label="菜品" width="140" align="center"></el-table-column>
+                                    <el-table-column prop="note" label="内容" align="center"></el-table-column>
+                                    <el-table-column prop="pf" label="星级" width="72" align="center"></el-table-column>
+                                    <el-table-column prop="ndate" label="日期" align="center"></el-table-column>
+                                    <el-table-column prop="username" label="用户" align="center"></el-table-column>
+                                    <el-table-column fixed="right" label="操作" width="200" align="center">
+                                        <template #default="scope">
+                                            <el-button link type="primary" size="small" @click="showEdit2(scope.row)">查看编辑</el-button>
+                                            <el-button link type="danger" size="small" @click="del2(scope.row.id)">删除</el-button>
+                                        </template>
+                                    </el-table-column>
+                                </el-table>
+                            </div>
+
+                            <div class="paginationctn">
+                                <el-pagination v-model:current-page="page2.current" v-model:page-size="page2.limit" :page-sizes="[50, 100, 200, 300, 400]" layout="total, sizes, prev, pager, next, jumper" :total="page2.total" @size-change="refreshData2" @current-change="refreshData2"></el-pagination>
+                            </div>
+                        </div>
+                        <div class="formdialog" v-show="showe2">
+                            <div class="formdialogtitle">查看编辑<span class="formdialogtitlegb" @click="showe2=false"></span></div>
+                            <el-form ref="fobjform2" :model="fobj2" label-width="auto">
+                                <el-form-item label="内容" prop="note" :rules="formRules">
+                                    <el-input type="textarea" v-model="fobj2.note"></el-input>
+                                </el-form-item>
+                                <!--<div style="text-align: center;margin-bottom: 20px;">
+                                    <div style="width: 150px;margin-left: 35%;">
+                                        <div style="text-align: center;">
+                                            <div style="text-align: center;" id="imgctn2"></div>
+                                            <a href="#" onclick="getFileInput2(this);">选择封面</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <el-form-item label="备注">
+                                    <div id="editor2" style="width: 480px;height: 400px;">
+
+                                    </div>
+                                </el-form-item>-->
+                                <el-form-item style="text-align: center;margin-top: 50px;">
+                                    <el-button type="success" @click="submit2">提交</el-button>
+                                    <el-button type="danger" @click="showe2=false">取消</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+                    </el-main>
+                    <el-footer></el-footer>
+                </el-container>
+
+            </el-dialog>
+
+            <el-dialog
+                v-model="warnDialogVisible"
+                title="向商家发送整改预警"
+                width="520px"
+                top="4vh"
+                append-to-body
+                :close-on-click-modal="false"
+                class="shop-warn-dialog"
+            >
+                <div class="shop-warn-layout">
+                    <div class="shop-warn-scroll">
+                        <div v-if="warnTargetRow" class="shop-warn-meta">
+                            <div><b>店铺：</b>{{ warnTargetRow.sname }}（ID {{ warnTargetRow.id }}）</div>
+                            <div><b>当前评分：</b>{{ warnTargetRow.pf != null && warnTargetRow.pf !== '' ? warnTargetRow.pf : '—' }}</div>
+                            <div class="shop-warn-hint">消息将推送至该店商家小程序「消息通知 → 系统」Tab，与「店铺审核未通过」通知同一通道。</div>
+                        </div>
+                        <el-input
+                            v-model="warnNote"
+                            type="textarea"
+                            :rows="5"
+                            maxlength="2000"
+                            show-word-limit
+                            placeholder="请填写整改要求与说明（会一并展示给商家）"
+                        />
+                    </div>
+                    <div class="shop-warn-bar">
+                        <button type="button" class="shop-warn-native" @click="warnDialogVisible = false">取 消</button>
+                        <button type="button" class="shop-warn-native shop-warn-native--go" @click="submitShopWarn">发送预警</button>
+                    </div>
+                </div>
+            </el-dialog>
+
+            <el-dialog
+                v-model="aiAdviceDialogVisible"
+                title="千帆 · 单店运营建议"
+                width="560px"
+                top="4vh"
+                append-to-body
+                :close-on-click-modal="false"
+                class="shop-warn-dialog"
+            >
+                <div class="shop-warn-layout" style="max-height: min(62vh, 480px);">
+                    <div class="shop-warn-scroll">
+                        <div v-if="aiAdviceRow" class="shop-warn-meta">
+                            <div><b>店铺：</b>{{ aiAdviceRow.sname }}（ID {{ aiAdviceRow.id }}）</div>
+                            <div><b>当前评分：</b>{{ aiAdviceRow.pf != null && aiAdviceRow.pf !== '' ? aiAdviceRow.pf : '—' }}</div>
+                            <div class="shop-warn-hint">由百度千帆基于近 30 天订单与菜品销量/评分等事实数据生成，可编辑后再推送至「消息通知 → 系统」。</div>
+                        </div>
+                        <div v-if="aiAdviceLoading" style="padding:20px;text-align:center;color:#909399;">千帆生成中，约 15～60 秒…</div>
+                        <el-input
+                            v-else
+                            v-model="aiAdviceText"
+                            type="textarea"
+                            :rows="10"
+                            maxlength="8000"
+                            show-word-limit
+                            placeholder="点击「重新生成」或打开本弹窗时自动拉取"
+                        />
+                    </div>
+                    <div class="shop-warn-bar">
+                        <button type="button" class="shop-warn-native" @click="aiAdviceDialogVisible = false">关 闭</button>
+                        <button type="button" class="shop-warn-native" :disabled="aiAdviceLoading" @click="runQianfanShopAdvice">重新生成</button>
+                        <button type="button" class="shop-warn-native shop-warn-native--go" :disabled="aiAdviceLoading || !(aiAdviceText||'').trim()" @click="submitAiAdviceSysmsg">推送给商家</button>
+                    </div>
+                </div>
+            </el-dialog>
+
+        </el-main>
+        <el-footer></el-footer>
+    </el-container>
+</div>
+
+</body>
+<script>
+    var addressObj = null;
+    window.addEventListener('message', function(event) {
+        // 接收位置信息，用户选择确认位置点后选点组件会触发该事件，回传用户的位置信息
+        var loc = event.data;
+        if (loc && loc.module == 'locationPicker') {//防止其他应用也会向该页面post信息，需判断module是否为'locationPicker'
+            addressObj = loc;
+            window.setAddress(loc.poiaddress)
+        }
+    }, false);
+    const App = {
+        data() {
+            return {
+                formRules:[{required: true, message: '请检查输入...', trigger: 'blur'}],
+                fileurl:fileurl,
+                uploadUrl:uploadUrl,
+                luser:{},
+                typelist:[],
+                subtypelist:[],
+                shoplist:[],
+                tbname:'shop',
+                showe:false,
+                sobj:{},
+                fobj:{
+                    typeid:0,
+                    ctypeid:0
+                },
+                // 审核不通过时的驳回原因，仅用于消息通知
+                rejectReason:'',
+                page:{ current: 1, limit: 10, total: 100 },
+                selectedKeys:[],
+                loading:false,
+                auditStateFilters:[
+                    { text:'待审核', value:'待审核' },
+                    { text:'审核通过', value:'审核通过' },
+                    { text:'审核不通过', value:'审核不通过' },
+                ],
+                shopFilters:[],
+                typeFilters:[],
+
+                dataSource:[],
+                /** normal | low_pf — 工作台 scope=low_pf 时按评分数值筛选 */
+                wbShopListMode: 'normal',
+
+                tbname2:'replay',
+                pobj:{},
+                /** 当前弹窗要展示的店铺 ID（菜品评价通过 good.sid 关联） */
+                replayListShopId: null,
+                showt:false,
+                showe2:false,
+                sobj2:{ noteKw: '' },
+                fobj2:{
+
+                },
+                page2:{ current: 1, limit: 50, total: 100 },
+                selectedKeys2:[],
+                loading2:false,
+
+                dataSource2:[],
+                /** split=左侧按菜品筛选+右侧表；flat=传统大表 */
+                replayLayout: 'split',
+                /** 空字符串=全部；否则为菜品名 */
+                replayDishNav: '',
+
+                warnDialogVisible: false,
+                warnTargetRow: null,
+                warnNote: '',
+
+                aiAdviceDialogVisible: false,
+                aiAdviceRow: null,
+                aiAdviceText: '',
+                aiAdviceLoading: false
+            };
+        },
+        computed: {
+            replayDishNavItems() {
+                const rows = this.dataSource2 || []
+                const map = {}
+                rows.forEach((r) => {
+                    const g = ((r && r.gname) ? String(r.gname) : '未命名').trim() || '未命名'
+                    if (!map[g]) {
+                        map[g] = { gname: g, sum: 0, cnt: 0, count: 0 }
+                    }
+                    const o = map[g]
+                    o.count++
+                    const pf = parseFloat(r.pf)
+                    if (!isNaN(pf)) {
+                        o.sum += pf
+                        o.cnt++
+                    }
+                })
+                return Object.keys(map).map((k) => {
+                    const x = map[k]
+                    const avgText = x.cnt > 0 ? (Math.round((x.sum / x.cnt) * 10) / 10).toFixed(1) : '—'
+                    return { gname: x.gname, count: x.count, avgText }
+                }).sort((a, b) => b.count - a.count)
+            },
+            replayFilteredRows() {
+                const rows = this.dataSource2 || []
+                const key = this.replayDishNav || ''
+                if (!key) {
+                    return rows
+                }
+                return rows.filter((r) => {
+                    const g = ((r && r.gname) ? String(r.gname) : '未命名').trim() || '未命名'
+                    return g === key
+                })
+            },
+            replaySummaryLine() {
+                const total = this.page2 && this.page2.total != null ? this.page2.total : 0
+                const n = (this.replayDishNavItems || []).length
+                return '全店累计 ' + total + ' 条 · 本页 ' + (this.dataSource2 || []).length + ' 条 · 本页涉及 ' + n + ' 个菜品'
+            }
+        },
+        mounted() {
+            this.luser = userinfo
+            this.applyUrlShopScope()
+            this.refreshData()
+            window.setAddress = this.setAddress
+            ajaxCallback1("list",{table:'type'},(data) => {
+                for (let s of data) {
+                    s.label=s.title
+                    s.value = s.id
+                }
+                this.typelist = data
+                // 根据分类列表生成“分类”列的筛选项
+                this.typeFilters = (data || []).map(d => ({
+                    text: d.title,
+                    value: d.title,
+                }))
+            })
+        },
+        methods: {
+            /** 工作台 scope=pending_audit|low_pf；商家运营详情 sid= 仅看一家店 */
+            applyUrlShopScope() {
+                try {
+                    const sp = new URLSearchParams(window.location.search || '')
+                    if (!this.sobj) this.sobj = {}
+                    this.wbShopListMode = 'normal'
+                    const sc = sp.get('scope')
+                    if (sc === 'pending_audit') {
+                        this.sobj.statecn = '待审核'
+                    } else if (sc === 'low_pf') {
+                        this.wbShopListMode = 'low_pf'
+                    }
+                    const q = sp.get('sid')
+                    if (q && /^\d+$/.test(String(q).trim())) {
+                        this.sobj.id = parseInt(q.trim(), 10)
+                    }
+                } catch (e) {}
+            },
+            handleSortChange(obj){
+                if(!obj || !obj.prop){
+                    delete this.sobj.sort
+                    delete this.sobj.order
+                }else{
+                    this.sobj.sort = obj.prop
+                    this.sobj.order = obj.order === 'ascending' ? 'asc' : (obj.order === 'descending' ? 'desc' : null)
+                }
+                this.refreshData()
+            },
+            handleFilterChange(filters){
+                if(!filters){ return }
+                if(filters.statecn){
+                    this.sobj.statecn = (filters.statecn && filters.statecn.length) ? filters.statecn[0] : null
+                }
+                if(filters.sname){
+                    this.sobj.sname = (filters.sname && filters.sname.length) ? filters.sname[0] : null
+                }
+                if(filters.typecn){
+                    this.sobj.typecn = (filters.typecn && filters.typecn.length) ? filters.typecn[0] : null
+                }
+                this.refreshData()
+            },
+            handleSelectionChange(rows) {
+                this.selectedKeys = (rows || []).map(function (r) { return r.id })
+            },
+            batchDel() {
+                if (!this.selectedKeys || !this.selectedKeys.length) {
+                    ElementPlus.ElMessage.warning('请先勾选要删除的行')
+                    return
+                }
+                var self = this
+                ElementPlus.ElMessageBox.confirm('确认批量删除选中的 ' + this.selectedKeys.length + ' 个店铺吗？', '提示', {
+                    confirmButtonText: '确认',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(function () {
+                    CrudEnhance.batchDelete(self.tbname, self.selectedKeys, function () {
+                        self.selectedKeys = []
+                        self.refreshData()
+                        ElementPlus.ElMessage.success('批量删除完成')
+                    })
+                }).catch(function () {})
+            },
+            exportCurrent() {
+                CrudEnhance.exportCsv('店铺管理_' + getNowDate() + '.csv', this.dataSource)
+            },
+            setAddress(address){
+                this.fobj.address = address
+            },
+            formatNdate(){
+                const d = new Date()
+                const p = n => (n < 10 ? '0' : '') + n
+                return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds())
+            },
+            openWarnDialog(row){
+                if (!row || !row.id) return
+                this.warnTargetRow = row
+                this.warnNote = '您店铺当前评分偏低，请重点关注用户评价中反馈的出餐速度、环境卫生与服务态度，及时整改提升口碑。如有异议可通过平台客服说明。'
+                this.warnDialogVisible = true
+            },
+            openAiAdviceDialog(row){
+                if (!row || !row.id) return
+                this.aiAdviceRow = row
+                this.aiAdviceText = ''
+                this.aiAdviceDialogVisible = true
+                this.runQianfanShopAdvice()
+            },
+            runQianfanShopAdvice(){
+                const row = this.aiAdviceRow
+                if (!row || !row.id) return
+                const self = this
+                self.aiAdviceLoading = true
+                self.aiAdviceText = ''
+                $.ajax({
+                    type: 'GET',
+                    url: clientUrl + 'aiOpsShopAdviceJ',
+                    dataType: 'jsonp',
+                    jsonp: 'callback',
+                    data: { sid: row.id, days: 30, mode: 'ops' },
+                    timeout: 120000,
+                    success(res){
+                        self.aiAdviceLoading = false
+                        if (!res || !res.ok) {
+                            ElementPlus.ElMessage.error((res && res.error) ? res.error : '千帆调用失败')
+                            return
+                        }
+                        self.aiAdviceText = (res.text != null) ? String(res.text) : ''
+                    },
+                    error(){
+                        self.aiAdviceLoading = false
+                        ElementPlus.ElMessage.error('请求超时或失败，请检查网络与 qianfan_api_key 配置')
+                    }
+                })
+            },
+            submitAiAdviceSysmsg(){
+                const row = this.aiAdviceRow
+                const text = (this.aiAdviceText || '').trim()
+                if (!row || !row.id) return
+                if (!text) {
+                    ElementPlus.ElMessage.error('请等待生成完成或填写建议正文')
+                    return
+                }
+                const head = '【AI运营建议】店铺：' + (row.sname || '') + ' | 当前评分：' + (row.pf != null && row.pf !== '' ? row.pf : '—') + '\n\n'
+                let note = head + text
+                if (note.length > 8000) {
+                    note = note.slice(0, 7997) + '...'
+                }
+                const payload = {
+                    table: 'sysmsg',
+                    title: 'AI 运营建议',
+                    note,
+                    ndate: this.formatNdate(),
+                    type: 'system',
+                    sid: row.id,
+                    shop: row.sname || '',
+                    state: 1,
+                    biztype: 'admin_ai_ops_advice'
+                }
+                const self = this
+                ajaxSavePost(payload, function(data){
+                    if (data == null) {
+                        ElementPlus.ElMessage.error('推送失败，请重试')
+                        return
+                    }
+                    ElementPlus.ElMessage.success('已推送，商家可在小程序「消息通知-系统」查看')
+                    self.aiAdviceDialogVisible = false
+                    self.aiAdviceRow = null
+                    self.aiAdviceText = ''
+                })
+            },
+            submitShopWarn(){
+                const row = this.warnTargetRow
+                if (!row || !row.id) return
+                const text = (this.warnNote || '').trim()
+                if (!text) {
+                    ElementPlus.ElMessage.error('请填写提醒内容')
+                    return
+                }
+                const head = '【平台整改提醒】店铺：' + (row.sname || '') + ' | 当前评分：' + (row.pf != null && row.pf !== '' ? row.pf : '—') + '\n\n'
+                let note = head + text
+                if (note.length > 8000) {
+                    note = note.slice(0, 7997) + '...'
+                }
+                const payload = {
+                    table: 'sysmsg',
+                    title: '评分整改提醒',
+                    note: note,
+                    ndate: this.formatNdate(),
+                    type: 'system',
+                    sid: row.id,
+                    shop: row.sname || '',
+                    state: 1,
+                    biztype: 'admin_low_pf_warn'
+                }
+                const self = this
+                ajaxSavePost(payload, function(data){
+                    if (data == null) {
+                        ElementPlus.ElMessage.error('发送失败，请重试')
+                        return
+                    }
+                    ElementPlus.ElMessage.success('已发送，商家可在小程序「消息通知-系统」查看')
+                    self.warnDialogVisible = false
+                    self.warnTargetRow = null
+                })
+            },
+            toReset(){
+                this.sobj = {}
+                this.wbShopListMode = 'normal'
+                this.selectedKeys = []
+                this.refreshData()
+            },
+            refreshData(){
+                let s = this.sobj
+                s.table = this.tbname
+                s.page = this.page.current
+                s.limit = this.page.limit
+                this.loading = true
+                if(userinfo.roletype=='3'){
+                    s.sid =  userinfo.sid
+                }
+                if (this.wbShopListMode === 'low_pf') {
+                    let sql = "select * from fs_shop where pf is not null and trim(pf)<>'' and (pf+0) < 4"
+                    if (this.sobj && this.sobj.id != null && !isNaN(this.sobj.id)) {
+                        sql += " and id=" + parseInt(this.sobj.id, 10)
+                    } else if (userinfo.roletype=='3' && userinfo.sid) {
+                        const mid = parseInt(userinfo.sid, 10)
+                        if (!isNaN(mid)) sql += " and id=" + mid
+                    }
+                    const self = this
+                    ajaxCallback1('listPageSql', {
+                        sql: sql,
+                        page: this.page.current,
+                        limit: this.page.limit,
+                        sort: 'id',
+                        order: 'desc'
+                    }, (r) => {
+                        self.loading = false
+                        self.dataSource = (r && r.rows) ? r.rows : []
+                        self.page.total = (r && r.total) ? r.total : 0
+                        const namesMap = {}
+                        const filters = []
+                        ;(self.dataSource || []).forEach(row => {
+                            if (row && row.sname && !namesMap[row.sname] && filters.length < 50) {
+                                namesMap[row.sname] = 1
+                                filters.push({ text: row.sname, value: row.sname })
+                            }
+                        })
+                        self.shopFilters = filters
+                    })
+                    return
+                }
+                ajaxCallback1('listPage',s,(r)=>{
+                    this.loading = false
+                    this.dataSource = r.rows
+                    // 根据当前数据生成“名称”列筛选项（只生成有限数量，避免过长）
+                    const namesMap = {}
+                    const filters = []
+                    ;(r.rows || []).forEach(row => {
+                        if (row && row.sname && !namesMap[row.sname] && filters.length < 50) {
+                            namesMap[row.sname] = 1
+                            filters.push({ text: row.sname, value: row.sname })
+                        }
+                    })
+                    this.shopFilters = filters
+                    this.page.total = r.total
+                })
+            },
+            showEdit(row){
+                this.showe = true
+                this.rejectReason = ''
+                if(row){
+                    this.fobj = row
+                    editor.txt.html(row.note);
+                    showAttach("imgctn",row.img)
+                }else{
+                    this.fobj = {}
+                    editor.txt.html("");
+                    showAttach("imgctn","")
+                }
+
+            },
+            submit1(){
+                this.$refs.fobjform1.validate((isValidate, model, errors) => {
+                    if(isValidate){
+                        if (this.fobj.statecn === '审核不通过' && (!this.rejectReason || this.rejectReason.trim() === '')) {
+                            ElementPlus.ElMessage.error('请填写审核不通过的驳回原因');
+                            return;
+                        }
+                        this.save()
+                    }
+                })
+            },
+            save(){
+                this.fobj.table = this.tbname;this.fobj.ndate = null
+                this.fobj.note = editor.txt.html();
+                if(this.fobj.typeid){
+                    this.fobj.typecn = (this.typelist.find((item) => item.value == this.fobj.typeid)).label
+                }
+
+                if(addressObj){
+                    this.fobj.address = addressObj.poiaddress
+                    this.fobj.latitude = addressObj.latlng.lat+""
+                    this.fobj.longitude = addressObj.latlng.lng+""
+                }
+                ajaxFormUploadFile((rimg)=>{
+                    this.fobj.img = rimg
+                    const payload = Object.assign({}, this.fobj, { img: rimg })
+                    delete payload.pf
+                    ajaxCallback("save",payload,(rid) => {
+                        console.log(rid)
+                        // 如果本次保存后状态为“审核不通过”，给对应商家推送一条系统消息
+                        if (this.fobj.statecn === '审核不通过') {
+                            const msg = {
+                                table: 'sysmsg',
+                                title: '店铺审核未通过',
+                                note: this.rejectReason || '店铺资料审核未通过，请根据管理员要求进行修改后重新提交。',
+                                sid: this.fobj.id,
+                                shop: this.fobj.sname
+                            }
+                            ajaxCallback("save", msg, function() {})
+                        }
+                        this.showe = false
+                        this.refreshData()
+                    });
+                })
+
+            },
+            cancel(){
+                this.showe = false
+            },
+            del(id){
+                ElementPlus.ElMessageBox.alert('确认删除吗?', '提示!', {
+                    confirmButtonText: '确认',
+                    callback: (action) => {
+                        ajaxCallback1("delete",{table: this.tbname, id: id},(r) => {
+                            this.refreshData()
+                        });
+                    }
+                })
+            },
+            sortChange(key, sort) {
+                this.sobj.sort = key
+                this.sobj.order = sort
+                this.refreshData()
+            },
+
+
+            showStable(row){
+                this.showt = true
+                this.pobj = row
+                this.replayListShopId = row && row.id != null ? parseInt(row.id, 10) : null
+                this.sobj2 = { noteKw: '' }
+                this.replayDishNav = ''
+                this.replayLayout = 'split'
+                this.page2.current = 1
+                if (this.page2.limit < 50) {
+                    this.page2.limit = 50
+                }
+                this.refreshData2()
+            },
+            toReset2(){
+                const sid = this.replayListShopId
+                this.sobj2 = { noteKw: '' }
+                this.replayListShopId = sid
+                this.replayDishNav = ''
+                this.page2.current = 1
+                this.refreshData2()
+            },
+            /** 本店菜品评价：replay.type=1 且 pid=商品id，通过 fs_good.sid 归属店铺（与词云 SQL 一致） */
+            refreshData2(){
+                const sid = this.replayListShopId != null && !isNaN(this.replayListShopId) ? this.replayListShopId : (this.pobj && this.pobj.id != null ? parseInt(this.pobj.id, 10) : NaN)
+                if (!sid || isNaN(sid)) {
+                    this.loading2 = false
+                    this.dataSource2 = []
+                    this.page2.total = 0
+                    return
+                }
+                let where = ' where r.type=1 and g.sid=' + sid
+                const kw = (this.sobj2 && this.sobj2.noteKw) ? String(this.sobj2.noteKw).trim() : ''
+                if (kw) {
+                    where += " and r.note like '%" + kw.replace(/'/g, "''").replace(/\\/g, '\\\\') + "%'"
+                }
+                const sql = 'select r.*, g.gname as gname from fs_replay r inner join fs_good g on cast(r.pid as unsigned)=g.id' + where
+                this.loading2 = true
+                const self = this
+                ajaxCallback1('listPageSql', {
+                    sql: sql,
+                    page: this.page2.current,
+                    limit: this.page2.limit,
+                    sort: 'r.id',
+                    order: 'desc'
+                }, (r) => {
+                    self.loading2 = false
+                    self.dataSource2 = (r && r.rows) ? r.rows : []
+                    self.page2.total = (r && r.total != null) ? r.total : 0
+                })
+            },
+            showEdit2(row){
+                this.showe2 = true
+                if(row){
+                    this.fobj2 = row
+                    //editor2.txt.html(row.note);
+                    //showAttach("imgctn",row.img)
+                }else{
+                    this.fobj2 = {}
+                    //editor2.txt.html("");
+                }
+
+            },
+            submit2(){
+                this.$refs.fobjform2.validate((isValidate, model, errors) => {
+                    if(isValidate){
+                        this.save2()
+                    }
+                })
+            },
+            save2(){
+                this.fobj2.table = this.tbname2
+                if (!this.fobj2 || !this.fobj2.id) {
+                    ElementPlus.ElMessage.warning('菜品评价由用户在小程序提交，后台仅可查看与编辑已有记录')
+                    return
+                }
+                ajaxCallback1("save", this.fobj2, (rid) => {
+                    console.log(rid)
+                    this.showe2 = false
+                    this.refreshData2()
+                });
+            },
+            cancel2(){
+                this.showe2 = false
+            },
+            del2(id){
+                ajaxCallback1("delete",{table: this.tbname2, id: id},(r) => {
+                    this.refreshData2()
+                });
+            }
+        },
+    };
+    const app = Vue.createApp(App);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+    app.use(ElementPlus,{
+        locale: ElementPlusLocaleZhCn,
+    });
+    app.mount("#app");
+</script>
+<script type="text/javascript" src="__PUBLIC__/weditor/wangEditor.js"></script>
+<script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp&key=W7YBZ-6ZBCW-RLBRW-OWWPF-AAJQO-POBJ4&libraries=place,convertor"></script>
+<script type="text/javascript">
+    var E = window.wangEditor;
+    var editor = new E('#editor');
+    // 或者 var editor = new E( document.getElementById('editor') )
+    editor.config.uploadImgShowBase64 = false;   // 使用 base64 保存图片
+    editor.config.uploadImgServer = _editorUpload;
+    editor.config.uploadVideoServer = _editorUploadVideo;
+    editor.config.uploadFileName = 'file';
+    editor.config.uploadVideoName = 'file';
+    editor.config.zIndex = 0;
+    editor.create()
+
+
+
+    /*var editor2 = new E('#editor2');
+    editor2.config.uploadImgShowBase64 = false;   // 使用 base64 保存图片
+    editor2.config.uploadImgServer = _editorUpload;
+    editor2.config.uploadVideoServer = _editorUploadVideo;
+    editor2.config.uploadFileName = 'file';
+    editor2.config.uploadVideoName = 'file';
+    editor2.config.zIndex = 0;
+    editor2.create()*/
+</script>
+</html>
