@@ -1,0 +1,225 @@
+{
+	"easycom": {
+		"autoscan": true,
+		"^u-search$": "@/components/u-search/u-search.vue",
+		"^u-(.*)": "uview-ui/components/u-$1/u-$1.vue",
+		"^tn-(.*)": "@/tuniao-ui/components/tn-$1/tn-$1.vue",
+		"^replay-word-cloud$": "@/components/replay-word-cloud/replay-word-cloud.vue"
+	},
+	"pages": [ 
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationStyle": "default",
+				"navigationBarTitleText": "登录",
+				"navigationBarBackgroundColor": "#ff8f3d",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/index/index",
+			"style": {
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/index/search"
+
+		},
+		{
+			"path": "pages/index/indexfenlei"
+			
+		}, {
+			"path": "pages/me/me"
+			
+
+		}, {
+			"path": "pages/assistant/assistant",
+			"style": {
+				"navigationBarTitleText": "AI小助手",
+				"navigationStyle": "default",
+				"navigationBarBackgroundColor": "#ff8f3d",
+				"navigationBarTextStyle": "white"
+			}
+		}, {
+			"path": "pages/merchant/index"
+		}, {
+			"path": "pages/merchant/replay"
+		}, {
+			"path": "pages/merchant/sysmsg"
+		}, {
+			"path": "pages/merchant/shopoperation"
+		}, {
+			"path": "pages/good/gooddetail"
+			
+
+		},{
+			"path": "pages/login/register"
+			
+		},
+		{
+			"path": "pages/me/medetail"
+			
+		},{
+			"path": "pages/good/good"
+			
+		}, {
+			"path": "pages/good/goodmg"
+			
+
+		}, {
+			"path": "pages/good/goodtuijian"
+
+
+		}, {
+			"path": "pages/favs/favs"
+			
+
+		}, {
+			"path": "pages/shops/shops"
+			
+
+		}, {
+			"path": "pages/shops/shopmg"
+
+
+		}, {
+			"path": "pages/shops/shopdetail"
+
+
+		}, {
+			"path": "pages/shops/shopcoupons"
+		}, {
+			"path": "pages/shops/shopdetail-m"
+
+		}, {
+			"path": "pages/shops/shopqa"
+
+		},{
+			"path": "pages/good/goodview"
+			
+
+		}, {
+			"path": "pages/good/goodpaihang"
+			
+			
+		}, {
+      "path": "pages/good/goodfenlei"
+    }
+	    ,{
+            "path" : "pages/chat/huihua"
+            
+            
+        },{
+            "path" : "pages/history/history"
+            
+            
+        }
+		,{
+			"path" : "pages/youhuiquan/youhuiquan"
+		}
+		,{
+			"path" : "pages/merchant/youhuiquan-m"
+		}
+        ,{
+			"path" : "pages/unimap/unimap"
+
+		},{
+			"path" : "pages/blog/blog"
+
+
+		},{
+			"path" : "pages/blog/bloguser"
+
+
+		},{
+			"path" : "pages/blog/blogmg"
+
+
+		},{
+			"path" : "pages/blog/blogplan"
+
+
+		},{
+			"path" : "pages/blog/bloglist"
+
+
+		},{
+			"path" : "pages/blog/play"
+
+
+		},{
+			"path" : "pages/blog/blogdetail"
+
+
+		},{
+			"path" : "pages/blog/blogtuijian"
+
+
+		},{
+			"path" : "pages/blog/blogzan"
+		},{
+			"path" : "pages/blog/blogindex"
+		},{
+			"path" : "pages/me/tags"
+		},{
+			"path" : "pages/me/replay-user"
+		},{
+			"path" : "pages/shops/shoptuijian"
+		},{
+			"path" : "pages/blog/blogshop"
+		},{
+			"path" : "pages/shopcar/shopcar"
+		},{
+			"path" : "pages/bill/bill"
+		},{
+			"path" : "pages/qianbao/qianbao"
+		},{
+			"path" : "pages/qianbao/qianbao-m"
+		},{
+			"path" : "pages/good/gooddetail-2"
+		},{
+			"path" : "pages/bill/surebill"
+		},{
+			"path" : "pages/bill/billdetail"
+		},{
+			"path" : "pages/bill/billdetailshop"
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8",
+		"navigationStyle": "custom",
+		"app-plus": {
+			"titleNView": false,
+			"scrollIndicator": "none",
+			"navigationBarRightButton": {
+				"hide": true
+			}
+		}
+	},
+	"uniIdRouter": {},
+	"tabBar": {
+		"color": "#666",
+		"selectedColor": "#ff6037",
+		"backgroundColor": "#fff",
+		"list": [{
+			"pagePath": "pages/index/index",
+			"text": "首页",
+			"iconPath": "static/images/tabbar/shouye.png",
+			"selectedIconPath": "static/images/tabbar/shouye.png"
+        }, {
+            "pagePath": "pages/chat/huihua",
+            "text": "消息",
+            "iconPath": "static/images/tabbar/xiaoxi1.png",
+            "selectedIconPath": "static/images/tabbar/xiaoxi1.png"
+        }, {
+			"pagePath": "pages/me/me",
+			"text": "我的",
+			"iconPath": "static/images/tabbar/wode1.png",
+			"selectedIconPath": "static/images/tabbar/wode1.png"
+		}]
+	}
+}

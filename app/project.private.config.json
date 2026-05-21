@@ -1,0 +1,15 @@
+{
+  "appid": "wx0ec92964a65715e5",
+  "libVersion": "3.15.2",
+  "projectname": "app",
+  "setting": {
+    "urlCheck": true,
+    "coverView": true,
+    "lazyloadPlaceholderEnable": false,
+    "skylineRenderEnable": false,
+    "preloadBackgroundData": false,
+    "autoAudits": false,
+    "showShadowRootInWxmlPanel": true,
+    "compileHotReLoad": true
+  }
+}

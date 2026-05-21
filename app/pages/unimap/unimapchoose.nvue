@@ -1,0 +1,161 @@
+<template>
+	<view>
+		<u-navbar title="地图选点" :border="true" :placeholder="true" @leftClick="goBack()" :autoBack="false"></u-navbar>
+		<view class="mycontent">
+			<map @tap="clickMap" @markertap="clickMarker" id="map" ref="map" class="map" :show-location="true" :latitude="latitude"
+				:longitude="longitude"></map>
+		</view>
+		
+	</view>
+</template>
+
+<script>
+	import {
+		listj,
+		findj,
+		fileUrl,
+		savej
+	} from '@/common/config/api.js'
+	import {
+		ideautil,
+		yewuutil
+	} from '@/common/commontools.js'
+	export default {
+		data() {
+			return {
+				latitude: 23.099994,
+				longitude: 113.324520,
+				fileUrl: fileUrl
+			}
+		},
+		onReady() {
+			this._mapContext = uni.createMapContext("map", this);
+
+			// 仅调用初始化，才会触发 on.("markerClusterCreate", (e) => {})
+			this._mapContext.initMarkerCluster({
+				enableDefaultStyle: false,
+				zoomOnClick: true,
+				gridSize: 60,
+				complete(res) {
+					console.log('initMarkerCluster', res)
+				}
+			});
+
+			this.getLocation()
+
+		},
+		methods: {
+			async getLocation(){
+				uni.getLocation({
+					success: async (res) => {
+						this.latitude = res.latitude
+						this.longitude = res.longitude
+						let point = await ideautil.getAddress(res)
+						console.log("await address:"+JSON.stringify(point))
+						getApp().globalData.targetAddress = point
+					}
+				});
+			},
+			clickMarker(e) {
+				console.log(e.markerId)
+			},
+			async clickMap(e) {
+				console.log(e.detail.latitude)
+				let res = {}
+				res.latitude = e.detail.latitude
+				res.longitude = e.detail.longitude
+				this.addMarker(res.latitude,res.longitude)
+				/* ideautil.getAddress(res,point => {
+					getApp().globalData.targetAddress = point
+				}) */
+				let point = await ideautil.getAddress(res)
+				console.log("await address:"+JSON.stringify(point))
+				getApp().globalData.targetAddress = point
+			},
+			goBack() {
+				uni.navigateBack({
+					delta: 1
+				});
+			},
+			addMarker(latitude, longitude) {
+				this._mapContext.addMarkers({
+					markers: [{
+						id:1,
+						latitude: latitude,
+						longitude: longitude
+					}],
+					clear: true,
+					complete(res) {
+
+					}
+				})
+			},
+			addMarkers() {
+				const img = this.fileUrl + '4476dd01-e609-4e89-ab36-ff88317f99a7.jpg';
+				const marker = {
+					id: 1,
+					iconPath: img,
+					width: 50,
+					height: 50,
+					joinCluster: true, // 指定了该参数才会参与聚合
+					label: {
+						width: 50,
+						height: 30,
+						borderWidth: 1,
+						borderRadius: 10,
+						bgColor: '#ffffff'
+					}
+				};
+
+				const positions = [{
+					latitude: 23.099994,
+					longitude: 113.324520,
+				}, {
+					latitude: 23.099994,
+					longitude: 113.322520,
+				}, {
+					latitude: 23.099994,
+					longitude: 113.326520,
+				}, {
+					latitude: 23.096994,
+					longitude: 113.329520,
+				}]
+
+				const markers = []
+
+				positions.forEach((p, i) => {
+					const newMarker = Object.assign({}, marker, p)
+					newMarker.id = i + 1
+					newMarker.label.content = `label ${i + 1}`
+					markers.push(newMarker)
+				})
+				this._mapContext.addMarkers({
+					markers,
+					clear: false,
+					complete(res) {
+						console.log('addMarkers', res)
+					}
+				})
+
+				/* this._mapContext.on('markerClusterClick', (res) => {
+					console.log(res)
+				}) */
+
+			}
+		}
+	}
+</script>
+
+<style>
+	.mycontent {
+		width: 750upx;
+		height: 1300upx;
+	
+	}
+	
+	.map {
+		width: 750upx;
+		height: 1300upx;
+	
+	}
+</style>
