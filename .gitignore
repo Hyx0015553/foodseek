@@ -1,0 +1,17 @@
+# IDE 配置文件
+.idea/
+*.iml
+.vscode/
+
+# 编译产物/临时文件
+target/
+out/
+*.class
+*.jar
+
+# 日志/临时文件
+*.txt
+*.log
+temp_doc/
+err.txt
+out.txt
