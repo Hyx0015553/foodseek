@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ideabobo.service.BillMapper">
+  <resultMap id="BaseResultMap" type="com.ideabobo.model.Bill">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="gids" jdbcType="VARCHAR" property="gids" />
+    <result column="user" jdbcType="VARCHAR" property="user" />
+    <result column="uid" jdbcType="INTEGER" property="uid" />
+    <result column="shop" jdbcType="VARCHAR" property="shop" />
+    <result column="ndate" jdbcType="TIMESTAMP" property="ndate" />
+    <result column="total" jdbcType="DECIMAL" property="total" />
+    <result column="gnames" jdbcType="VARCHAR" property="gnames" />
+    <result column="sid" jdbcType="INTEGER" property="sid" />
+    <result column="tel" jdbcType="VARCHAR" property="tel" />
+    <result column="note" jdbcType="VARCHAR" property="note" />
+    <result column="state" jdbcType="TINYINT" property="state" />
+    <result column="pf" jdbcType="DECIMAL" property="pf" />
+    <result column="way" jdbcType="VARCHAR" property="way" />
+    <result column="yhqid" jdbcType="INTEGER" property="yhqid" />
+    <result column="merchantmsghide" jdbcType="TINYINT" property="merchantMsgHide" />
+    <result column="user_delete" jdbcType="INTEGER" property="user_delete" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, gids, user, uid, shop, ndate, total, gnames, sid, tel, note, state, pf, way, yhqid,
+    merchantmsghide, user_delete
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from fs_bill
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from fs_bill
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.ideabobo.model.Bill">
+    insert into fs_bill (id, gids, user, 
+      uid, shop, ndate, total, 
+      gnames, sid, tel, note, state, pf, way, yhqid, merchantmsghide, user_delete)
+    values (#{id,jdbcType=INTEGER}, #{gids,jdbcType=VARCHAR}, #{user,jdbcType=VARCHAR}, 
+      #{uid,jdbcType=INTEGER}, #{shop,jdbcType=VARCHAR}, #{ndate,jdbcType=TIMESTAMP}, #{total,jdbcType=DECIMAL}, 
+      #{gnames,jdbcType=VARCHAR}, #{sid,jdbcType=INTEGER}, #{tel,jdbcType=VARCHAR}, #{note,jdbcType=VARCHAR}, 
+      #{state,jdbcType=TINYINT}, #{pf,jdbcType=DECIMAL}, #{way,jdbcType=VARCHAR}, #{yhqid,jdbcType=INTEGER}, 
+      #{merchantMsgHide,jdbcType=TINYINT}, #{user_delete,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ideabobo.model.Bill">
+    insert into fs_bill
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="gids != null">
+        gids,
+      </if>
+      <if test="user != null">
+        user,
+      </if>
+      <if test="uid != null">
+        uid,
+      </if>
+      <if test="shop != null">
+        shop,
+      </if>
+      <if test="ndate != null">
+        ndate,
+      </if>
+      <if test="total != null">
+        total,
+      </if>
+      <if test="gnames != null">
+        gnames,
+      </if>
+      <if test="sid != null">
+        sid,
+      </if>
+      <if test="tel != null">
+        tel,
+      </if>
+      <if test="note != null">
+        note,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="pf != null">
+        pf,
+      </if>
+      <if test="way != null">
+        way,
+      </if>
+      <if test="yhqid != null">
+        yhqid,
+      </if>
+      <if test="merchantMsgHide != null">
+        merchantmsghide,
+      </if>
+      <if test="user_delete != null">
+        user_delete,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="gids != null">
+        #{gids,jdbcType=VARCHAR},
+      </if>
+      <if test="user != null">
+        #{user,jdbcType=VARCHAR},
+      </if>
+      <if test="uid != null">
+        #{uid,jdbcType=INTEGER},
+      </if>
+      <if test="shop != null">
+        #{shop,jdbcType=VARCHAR},
+      </if>
+      <if test="ndate != null">
+        #{ndate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="total != null">
+        #{total,jdbcType=DECIMAL},
+      </if>
+      <if test="gnames != null">
+        #{gnames,jdbcType=VARCHAR},
+      </if>
+      <if test="sid != null">
+        #{sid,jdbcType=INTEGER},
+      </if>
+      <if test="tel != null">
+        #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="note != null">
+        #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=TINYINT},
+      </if>
+      <if test="pf != null">
+        #{pf,jdbcType=DECIMAL},
+      </if>
+      <if test="way != null">
+        #{way,jdbcType=VARCHAR},
+      </if>
+      <if test="yhqid != null">
+        #{yhqid,jdbcType=INTEGER},
+      </if>
+      <if test="merchantMsgHide != null">
+        #{merchantMsgHide,jdbcType=TINYINT},
+      </if>
+      <if test="user_delete != null">
+        #{user_delete,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ideabobo.model.Bill">
+    update fs_bill
+    <set>
+      <if test="gids != null">
+        gids = #{gids,jdbcType=VARCHAR},
+      </if>
+      <if test="user != null">
+        user = #{user,jdbcType=VARCHAR},
+      </if>
+      <if test="uid != null">
+        uid = #{uid,jdbcType=INTEGER},
+      </if>
+      <if test="shop != null">
+        shop = #{shop,jdbcType=VARCHAR},
+      </if>
+      <if test="ndate != null">
+        ndate = #{ndate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="total != null">
+        total = #{total,jdbcType=DECIMAL},
+      </if>
+      <if test="gnames != null">
+        gnames = #{gnames,jdbcType=VARCHAR},
+      </if>
+      <if test="sid != null">
+        sid = #{sid,jdbcType=INTEGER},
+      </if>
+      <if test="tel != null">
+        tel = #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="note != null">
+        note = #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=TINYINT},
+      </if>
+      <if test="pf != null">
+        pf = #{pf,jdbcType=DECIMAL},
+      </if>
+      <if test="way != null">
+        way = #{way,jdbcType=VARCHAR},
+      </if>
+      <if test="yhqid != null">
+        yhqid = #{yhqid,jdbcType=INTEGER},
+      </if>
+      <if test="merchantMsgHide != null">
+        merchantmsghide = #{merchantMsgHide,jdbcType=TINYINT},
+      </if>
+      <if test="user_delete != null">
+        user_delete = #{user_delete,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ideabobo.model.Bill">
+    update fs_bill
+    set gids = #{gids,jdbcType=VARCHAR},
+      user = #{user,jdbcType=VARCHAR},
+      uid = #{uid,jdbcType=INTEGER},
+      shop = #{shop,jdbcType=VARCHAR},
+      ndate = #{ndate,jdbcType=TIMESTAMP},
+      total = #{total,jdbcType=DECIMAL},
+      gnames = #{gnames,jdbcType=VARCHAR},
+      sid = #{sid,jdbcType=INTEGER},
+      tel = #{tel,jdbcType=VARCHAR},
+      note = #{note,jdbcType=VARCHAR},
+      state = #{state,jdbcType=TINYINT},
+      pf = #{pf,jdbcType=DECIMAL},
+      way = #{way,jdbcType=VARCHAR},
+      yhqid = #{yhqid,jdbcType=INTEGER},
+      merchantmsghide = #{merchantMsgHide,jdbcType=TINYINT},
+      user_delete = #{user_delete,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

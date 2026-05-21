@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ideabobo.service.HuihuaMapper">
+  <resultMap id="BaseResultMap" type="com.ideabobo.model.Huihua">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="uid" jdbcType="INTEGER" property="uid" />
+    <result column="fid" jdbcType="INTEGER" property="fid" />
+    <result column="qid" jdbcType="INTEGER" property="qid" />
+    <result column="type" jdbcType="INTEGER" property="type" />
+    <result column="note" jdbcType="VARCHAR" property="note" />
+    <result column="ndate" jdbcType="VARCHAR" property="ndate" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="fusername" jdbcType="VARCHAR" property="fusername" />
+    <result column="img" jdbcType="VARCHAR" property="img" />
+    <result column="qtitle" jdbcType="VARCHAR" property="qtitle" />
+    <result column="msgtype" jdbcType="INTEGER" property="msgtype" />
+    <result column="sid" jdbcType="INTEGER" property="sid" />
+    <result column="shop" jdbcType="VARCHAR" property="shop" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, uid, fid, qid, type, note, ndate, username, fusername, img, qtitle, msgtype, sid, shop
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from fs_shop_qa_notice
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from fs_shop_qa_notice
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.ideabobo.model.Huihua">
+    insert into fs_shop_qa_notice (id, uid, fid, 
+      qid, type, note, ndate, username, fusername, img, qtitle, msgtype, sid, shop)
+    values (#{id,jdbcType=INTEGER}, #{uid,jdbcType=INTEGER}, #{fid,jdbcType=INTEGER}, 
+      #{qid,jdbcType=INTEGER}, #{type,jdbcType=INTEGER}, #{note,jdbcType=VARCHAR}, 
+      #{ndate,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, #{fusername,jdbcType=VARCHAR}, 
+      #{img,jdbcType=VARCHAR}, #{qtitle,jdbcType=VARCHAR}, #{msgtype,jdbcType=INTEGER}, 
+      #{sid,jdbcType=INTEGER}, #{shop,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ideabobo.model.Huihua">
+    insert into fs_shop_qa_notice
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="uid != null">
+        uid,
+      </if>
+      <if test="fid != null">
+        fid,
+      </if>
+      <if test="qid != null">
+        qid,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="note != null">
+        note,
+      </if>
+      <if test="ndate != null">
+        ndate,
+      </if>
+      <if test="username != null">
+        username,
+      </if>
+      <if test="fusername != null">
+        fusername,
+      </if>
+      <if test="img != null">
+        img,
+      </if>
+      <if test="qtitle != null">
+        qtitle,
+      </if>
+      <if test="msgtype != null">
+        msgtype,
+      </if>
+      <if test="sid != null">
+        sid,
+      </if>
+      <if test="shop != null">
+        shop,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="uid != null">
+        #{uid,jdbcType=INTEGER},
+      </if>
+      <if test="fid != null">
+        #{fid,jdbcType=INTEGER},
+      </if>
+      <if test="qid != null">
+        #{qid,jdbcType=INTEGER},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="note != null">
+        #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="ndate != null">
+        #{ndate,jdbcType=VARCHAR},
+      </if>
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="fusername != null">
+        #{fusername,jdbcType=VARCHAR},
+      </if>
+      <if test="img != null">
+        #{img,jdbcType=VARCHAR},
+      </if>
+      <if test="qtitle != null">
+        #{qtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="msgtype != null">
+        #{msgtype,jdbcType=INTEGER},
+      </if>
+      <if test="sid != null">
+        #{sid,jdbcType=INTEGER},
+      </if>
+      <if test="shop != null">
+        #{shop,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ideabobo.model.Huihua">
+    update fs_shop_qa_notice
+    <set>
+      <if test="uid != null">
+        uid = #{uid,jdbcType=INTEGER},
+      </if>
+      <if test="fid != null">
+        fid = #{fid,jdbcType=INTEGER},
+      </if>
+      <if test="qid != null">
+        qid = #{qid,jdbcType=INTEGER},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="note != null">
+        note = #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="ndate != null">
+        ndate = #{ndate,jdbcType=VARCHAR},
+      </if>
+      <if test="username != null">
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="fusername != null">
+        fusername = #{fusername,jdbcType=VARCHAR},
+      </if>
+      <if test="img != null">
+        img = #{img,jdbcType=VARCHAR},
+      </if>
+      <if test="qtitle != null">
+        qtitle = #{qtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="msgtype != null">
+        msgtype = #{msgtype,jdbcType=INTEGER},
+      </if>
+      <if test="sid != null">
+        sid = #{sid,jdbcType=INTEGER},
+      </if>
+      <if test="shop != null">
+        shop = #{shop,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ideabobo.model.Huihua">
+    update fs_shop_qa_notice
+    set uid = #{uid,jdbcType=INTEGER},
+      fid = #{fid,jdbcType=INTEGER},
+      qid = #{qid,jdbcType=INTEGER},
+      type = #{type,jdbcType=INTEGER},
+      note = #{note,jdbcType=VARCHAR},
+      ndate = #{ndate,jdbcType=VARCHAR},
+      username = #{username,jdbcType=VARCHAR},
+      fusername = #{fusername,jdbcType=VARCHAR},
+      img = #{img,jdbcType=VARCHAR},
+      qtitle = #{qtitle,jdbcType=VARCHAR},
+      msgtype = #{msgtype,jdbcType=INTEGER},
+      sid = #{sid,jdbcType=INTEGER},
+      shop = #{shop,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

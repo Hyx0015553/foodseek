@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ideabobo.service.ShopMapper">
+  <resultMap id="BaseResultMap" type="com.ideabobo.model.Shop">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="sname" jdbcType="VARCHAR" property="sname" />
+    <result column="img" jdbcType="VARCHAR" property="img" />
+    <result column="note" jdbcType="VARCHAR" property="note" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="longitude" jdbcType="VARCHAR" property="longitude" />
+    <result column="latitude" jdbcType="VARCHAR" property="latitude" />
+    <result column="tel" jdbcType="VARCHAR" property="tel" />
+    <result column="ownid" jdbcType="INTEGER" property="ownid" />
+    <result column="pf" jdbcType="DECIMAL" property="pf" />
+    <result column="typeid" jdbcType="INTEGER" property="typeid" />
+    <result column="typecn" jdbcType="VARCHAR" property="typecn" />
+    <result column="img2" jdbcType="VARCHAR" property="img2" />
+    <result column="stitle" jdbcType="VARCHAR" property="stitle" />
+    <result column="state" jdbcType="TINYINT" property="state" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, sname, img, note, address, longitude, latitude, tel, ownid,
+    pf, typeid, typecn, img2, stitle, state
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from fs_shop
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from fs_shop
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.ideabobo.model.Shop">
+    insert into fs_shop (id, sname, img, note, address, longitude, latitude, tel, ownid,
+      pf, typeid, typecn, img2, stitle, state)
+    values (#{id,jdbcType=INTEGER}, #{sname,jdbcType=VARCHAR}, #{img,jdbcType=VARCHAR},
+      #{note,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{longitude,jdbcType=VARCHAR},
+      #{latitude,jdbcType=VARCHAR}, #{tel,jdbcType=VARCHAR}, #{ownid,jdbcType=INTEGER},
+      #{pf,jdbcType=DECIMAL}, #{typeid,jdbcType=INTEGER}, #{typecn,jdbcType=VARCHAR},
+      #{img2,jdbcType=VARCHAR}, #{stitle,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ideabobo.model.Shop">
+    insert into fs_shop
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">id,</if>
+      <if test="sname != null">sname,</if>
+      <if test="img != null">img,</if>
+      <if test="note != null">note,</if>
+      <if test="address != null">address,</if>
+      <if test="longitude != null">longitude,</if>
+      <if test="latitude != null">latitude,</if>
+      <if test="tel != null">tel,</if>
+      <if test="ownid != null">ownid,</if>
+      <if test="pf != null">pf,</if>
+      <if test="typeid != null">typeid,</if>
+      <if test="typecn != null">typecn,</if>
+      <if test="img2 != null">img2,</if>
+      <if test="stitle != null">stitle,</if>
+      <if test="state != null">state,</if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">#{id,jdbcType=INTEGER},</if>
+      <if test="sname != null">#{sname,jdbcType=VARCHAR},</if>
+      <if test="img != null">#{img,jdbcType=VARCHAR},</if>
+      <if test="note != null">#{note,jdbcType=VARCHAR},</if>
+      <if test="address != null">#{address,jdbcType=VARCHAR},</if>
+      <if test="longitude != null">#{longitude,jdbcType=VARCHAR},</if>
+      <if test="latitude != null">#{latitude,jdbcType=VARCHAR},</if>
+      <if test="tel != null">#{tel,jdbcType=VARCHAR},</if>
+      <if test="ownid != null">#{ownid,jdbcType=INTEGER},</if>
+      <if test="pf != null">#{pf,jdbcType=DECIMAL},</if>
+      <if test="typeid != null">#{typeid,jdbcType=INTEGER},</if>
+      <if test="typecn != null">#{typecn,jdbcType=VARCHAR},</if>
+      <if test="img2 != null">#{img2,jdbcType=VARCHAR},</if>
+      <if test="stitle != null">#{stitle,jdbcType=VARCHAR},</if>
+      <if test="state != null">#{state,jdbcType=TINYINT},</if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ideabobo.model.Shop">
+    update fs_shop
+    <set>
+      <if test="sname != null">sname = #{sname,jdbcType=VARCHAR},</if>
+      <if test="img != null">img = #{img,jdbcType=VARCHAR},</if>
+      <if test="note != null">note = #{note,jdbcType=VARCHAR},</if>
+      <if test="address != null">address = #{address,jdbcType=VARCHAR},</if>
+      <if test="longitude != null">longitude = #{longitude,jdbcType=VARCHAR},</if>
+      <if test="latitude != null">latitude = #{latitude,jdbcType=VARCHAR},</if>
+      <if test="tel != null">tel = #{tel,jdbcType=VARCHAR},</if>
+      <if test="ownid != null">ownid = #{ownid,jdbcType=INTEGER},</if>
+      <if test="pf != null">pf = #{pf,jdbcType=DECIMAL},</if>
+      <if test="typeid != null">typeid = #{typeid,jdbcType=INTEGER},</if>
+      <if test="typecn != null">typecn = #{typecn,jdbcType=VARCHAR},</if>
+      <if test="img2 != null">img2 = #{img2,jdbcType=VARCHAR},</if>
+      <if test="stitle != null">stitle = #{stitle,jdbcType=VARCHAR},</if>
+      <if test="state != null">state = #{state,jdbcType=TINYINT},</if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ideabobo.model.Shop">
+    update fs_shop
+    set sname = #{sname,jdbcType=VARCHAR},
+      img = #{img,jdbcType=VARCHAR},
+      note = #{note,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      longitude = #{longitude,jdbcType=VARCHAR},
+      latitude = #{latitude,jdbcType=VARCHAR},
+      tel = #{tel,jdbcType=VARCHAR},
+      ownid = #{ownid,jdbcType=INTEGER},
+      pf = #{pf,jdbcType=DECIMAL},
+      typeid = #{typeid,jdbcType=INTEGER},
+      typecn = #{typecn,jdbcType=VARCHAR},
+      img2 = #{img2,jdbcType=VARCHAR},
+      stitle = #{stitle,jdbcType=VARCHAR},
+      state = #{state,jdbcType=TINYINT}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

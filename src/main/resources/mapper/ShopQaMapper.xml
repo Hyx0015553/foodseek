@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ideabobo.service.ShopQaMapper">
+  <resultMap id="BaseResultMap" type="com.ideabobo.model.ShopQa">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="sid" jdbcType="INTEGER" property="sid" />
+    <result column="shop" jdbcType="VARCHAR" property="shop" />
+    <result column="qtype" jdbcType="VARCHAR" property="qtype" />
+    <result column="qid" jdbcType="INTEGER" property="qid" />
+    <result column="note" jdbcType="VARCHAR" property="note" />
+    <result column="uid" jdbcType="INTEGER" property="uid" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="roletype" jdbcType="VARCHAR" property="roletype" />
+    <result column="ndate" jdbcType="VARCHAR" property="ndate" />
+    <result column="statecn" jdbcType="VARCHAR" property="statecn" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, sid, shop, qtype, qid, note, uid, username, roletype, ndate, statecn
+  </sql>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from fs_shop_qa
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from fs_shop_qa
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <insert id="insert" parameterType="com.ideabobo.model.ShopQa">
+    insert into fs_shop_qa (id, sid, shop,
+      qtype, qid, note,
+      uid, username, roletype,
+      ndate, statecn)
+    values (#{id,jdbcType=INTEGER}, #{sid,jdbcType=INTEGER}, #{shop,jdbcType=VARCHAR},
+      #{qtype,jdbcType=VARCHAR}, #{qid,jdbcType=INTEGER}, #{note,jdbcType=VARCHAR},
+      #{uid,jdbcType=INTEGER}, #{username,jdbcType=VARCHAR}, #{roletype,jdbcType=VARCHAR},
+      #{ndate,jdbcType=VARCHAR}, #{statecn,jdbcType=VARCHAR})
+  </insert>
+
+  <insert id="insertSelective" parameterType="com.ideabobo.model.ShopQa">
+    insert into fs_shop_qa
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="sid != null">
+        sid,
+      </if>
+      <if test="shop != null">
+        shop,
+      </if>
+      <if test="qtype != null">
+        qtype,
+      </if>
+      <if test="qid != null">
+        qid,
+      </if>
+      <if test="note != null">
+        note,
+      </if>
+      <if test="uid != null">
+        uid,
+      </if>
+      <if test="username != null">
+        username,
+      </if>
+      <if test="roletype != null">
+        roletype,
+      </if>
+      <if test="ndate != null">
+        ndate,
+      </if>
+      <if test="statecn != null">
+        statecn,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="sid != null">
+        #{sid,jdbcType=INTEGER},
+      </if>
+      <if test="shop != null">
+        #{shop,jdbcType=VARCHAR},
+      </if>
+      <if test="qtype != null">
+        #{qtype,jdbcType=VARCHAR},
+      </if>
+      <if test="qid != null">
+        #{qid,jdbcType=INTEGER},
+      </if>
+      <if test="note != null">
+        #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="uid != null">
+        #{uid,jdbcType=INTEGER},
+      </if>
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="roletype != null">
+        #{roletype,jdbcType=VARCHAR},
+      </if>
+      <if test="ndate != null">
+        #{ndate,jdbcType=VARCHAR},
+      </if>
+      <if test="statecn != null">
+        #{statecn,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.ideabobo.model.ShopQa">
+    update fs_shop_qa
+    <set>
+      <if test="sid != null">
+        sid = #{sid,jdbcType=INTEGER},
+      </if>
+      <if test="shop != null">
+        shop = #{shop,jdbcType=VARCHAR},
+      </if>
+      <if test="qtype != null">
+        qtype = #{qtype,jdbcType=VARCHAR},
+      </if>
+      <if test="qid != null">
+        qid = #{qid,jdbcType=INTEGER},
+      </if>
+      <if test="note != null">
+        note = #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="uid != null">
+        uid = #{uid,jdbcType=INTEGER},
+      </if>
+      <if test="username != null">
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="roletype != null">
+        roletype = #{roletype,jdbcType=VARCHAR},
+      </if>
+      <if test="ndate != null">
+        ndate = #{ndate,jdbcType=VARCHAR},
+      </if>
+      <if test="statecn != null">
+        statecn = #{statecn,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <update id="updateByPrimaryKey" parameterType="com.ideabobo.model.ShopQa">
+    update fs_shop_qa
+    set sid = #{sid,jdbcType=INTEGER},
+      shop = #{shop,jdbcType=VARCHAR},
+      qtype = #{qtype,jdbcType=VARCHAR},
+      qid = #{qid,jdbcType=INTEGER},
+      note = #{note,jdbcType=VARCHAR},
+      uid = #{uid,jdbcType=INTEGER},
+      username = #{username,jdbcType=VARCHAR},
+      roletype = #{roletype,jdbcType=VARCHAR},
+      ndate = #{ndate,jdbcType=VARCHAR},
+      statecn = #{statecn,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
+

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ideabobo.service.YouhuiquanMapper">
+  <resultMap id="BaseResultMap" type="com.ideabobo.model.Youhuiquan">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="total" jdbcType="INTEGER" property="total" />
+    <result column="extime" jdbcType="INTEGER" property="extime" />
+    <result column="sid" jdbcType="INTEGER" property="sid" />
+    <result column="uid" jdbcType="INTEGER" property="uid" />
+    <result column="typeid" jdbcType="INTEGER" property="typeid" />
+    <result column="fulluse" jdbcType="INTEGER" property="fulluse" />
+    <result column="ndate" jdbcType="TIMESTAMP" property="ndate" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="state" jdbcType="TINYINT" property="state" />
+    <result column="pid" jdbcType="INTEGER" property="pid" />
+    <result column="kucun" jdbcType="INTEGER" property="kucun" />
+    <result column="note" jdbcType="VARCHAR" property="note" />
+    <result column="deleted" jdbcType="TINYINT" property="deleted" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, total, extime, sid, uid, typeid, fulluse, ndate, username, state, pid, kucun, note, deleted
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from fs_youhuiquan
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from fs_youhuiquan
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.ideabobo.model.Youhuiquan">
+    insert into fs_youhuiquan (id, total, extime, 
+      sid, uid, typeid, fulluse, 
+      ndate, username, state, pid, kucun, note, deleted)
+    values (#{id,jdbcType=INTEGER}, #{total,jdbcType=INTEGER}, #{extime,jdbcType=INTEGER}, 
+      #{sid,jdbcType=INTEGER}, #{uid,jdbcType=INTEGER}, #{typeid,jdbcType=INTEGER}, #{fulluse,jdbcType=INTEGER}, 
+      #{ndate,jdbcType=TIMESTAMP}, #{username,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT}, #{pid,jdbcType=INTEGER},
+      #{kucun,jdbcType=INTEGER}, #{note,jdbcType=VARCHAR}, #{deleted,jdbcType=TINYINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ideabobo.model.Youhuiquan">
+    insert into fs_youhuiquan
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="total != null">
+        total,
+      </if>
+      <if test="extime != null">
+        extime,
+      </if>
+      <if test="sid != null">
+        sid,
+      </if>
+      <if test="uid != null">
+        uid,
+      </if>
+      <if test="typeid != null">
+        typeid,
+      </if>
+      <if test="fulluse != null">
+        fulluse,
+      </if>
+      <if test="ndate != null">
+        ndate,
+      </if>
+      <if test="username != null">
+        username,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="pid != null">
+        pid,
+      </if>
+      <if test="kucun != null">
+        kucun,
+      </if>
+      <if test="note != null">
+        note,
+      </if>
+      <if test="deleted != null">
+        deleted,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="total != null">
+        #{total,jdbcType=INTEGER},
+      </if>
+      <if test="extime != null">
+        #{extime,jdbcType=INTEGER},
+      </if>
+      <if test="sid != null">
+        #{sid,jdbcType=INTEGER},
+      </if>
+      <if test="uid != null">
+        #{uid,jdbcType=INTEGER},
+      </if>
+      <if test="typeid != null">
+        #{typeid,jdbcType=INTEGER},
+      </if>
+      <if test="fulluse != null">
+        #{fulluse,jdbcType=INTEGER},
+      </if>
+      <if test="ndate != null">
+        #{ndate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=TINYINT},
+      </if>
+      <if test="pid != null">
+        #{pid,jdbcType=INTEGER},
+      </if>
+      <if test="kucun != null">
+        #{kucun,jdbcType=INTEGER},
+      </if>
+      <if test="note != null">
+        #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="deleted != null">
+        #{deleted,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ideabobo.model.Youhuiquan">
+    update fs_youhuiquan
+    <set>
+      <if test="total != null">
+        total = #{total,jdbcType=INTEGER},
+      </if>
+      <if test="extime != null">
+        extime = #{extime,jdbcType=INTEGER},
+      </if>
+      <if test="sid != null">
+        sid = #{sid,jdbcType=INTEGER},
+      </if>
+      <if test="uid != null">
+        uid = #{uid,jdbcType=INTEGER},
+      </if>
+      <if test="typeid != null">
+        typeid = #{typeid,jdbcType=INTEGER},
+      </if>
+      <if test="fulluse != null">
+        fulluse = #{fulluse,jdbcType=INTEGER},
+      </if>
+      <if test="ndate != null">
+        ndate = #{ndate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="username != null">
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=TINYINT},
+      </if>
+      <if test="pid != null">
+        pid = #{pid,jdbcType=INTEGER},
+      </if>
+      <if test="kucun != null">
+        kucun = #{kucun,jdbcType=INTEGER},
+      </if>
+      <if test="note != null">
+        note = #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="deleted != null">
+        deleted = #{deleted,jdbcType=TINYINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ideabobo.model.Youhuiquan">
+    update fs_youhuiquan
+    set total = #{total,jdbcType=INTEGER},
+      extime = #{extime,jdbcType=INTEGER},
+      sid = #{sid,jdbcType=INTEGER},
+      uid = #{uid,jdbcType=INTEGER},
+      typeid = #{typeid,jdbcType=INTEGER},
+      fulluse = #{fulluse,jdbcType=INTEGER},
+      ndate = #{ndate,jdbcType=TIMESTAMP},
+      username = #{username,jdbcType=VARCHAR},
+      state = #{state,jdbcType=TINYINT},
+      pid = #{pid,jdbcType=INTEGER},
+      kucun = #{kucun,jdbcType=INTEGER},
+      note = #{note,jdbcType=VARCHAR},
+      deleted = #{deleted,jdbcType=TINYINT}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
